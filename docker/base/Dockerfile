@@ -10,7 +10,7 @@ RUN sed -i "s/http:\/\/archive./http:\/\/nz.archive./g" /etc/apt/sources.list &&
 RUN virtualenv /appenv
 
 # Upgrade PIP
-RUN . /appenv/bin/activate; pip install pip>=7.1.2
+RUN . /appenv/bin/activate; pip install pip==7.1.2
 
 # Activate the virtual environment
 ADD entrypoint.sh /usr/local/bin/entrypoint.sh
