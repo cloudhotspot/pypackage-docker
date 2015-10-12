@@ -91,8 +91,9 @@ The example ``MANIFEST.in`` file included with the sample application ensures al
 * ``polls/static``
 * ``templates``
 
-.. code-block:: none
+.. code-block:: python
 
+  # MANIFEST.in
   recursive-include polls/templates *
   recursive-include polls/static *
   recursive-include templates *
@@ -106,7 +107,7 @@ By default, any application created via the Django admin tools within a project 
 
 The ``setup.py`` file uses the ``packages = find_packages()`` setting to automatically locate all applications within the project.
 
--- note:: |this_repository| includes the |django_sample_application|, which creates a project package called ``mysite`` and a supporting application package called ``polls``.
+.. note:: |this_repository| includes the |django_sample_application|, which creates a project package called ``mysite`` and a supporting application package called ``polls``.
 
 
 .. |wheels_link| raw:: html
