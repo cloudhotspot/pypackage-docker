@@ -24,7 +24,7 @@ At a minimum, the project root of your Django project requires the following fil
 
 
 setup.py
---------
+~~~~~~~~
 
 The ``setup.py`` file provides the specification of how to build your application into package(s).  
 
