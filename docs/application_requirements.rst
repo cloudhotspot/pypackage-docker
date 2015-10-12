@@ -3,8 +3,8 @@ Application Requirements
 
 PyPackage Docker attempts to adopt Python best practices related to application packaging and folder structures.  In principle this means:
 
-* Packages are built using the new standard of Python distribution - Wheels_.
-* Everything is treated as a package - even Django projects
+* Packages are built using the new standard of Python distribution (|wheels_link|).
+* Everything is treated as a package - even Django projects.
 
 PyPackage Docker initially is focused at Django projects and as such, this document focuses on application requirements specific to Django projects.
 
@@ -23,6 +23,7 @@ At a minimum, the project root of your Django project requires the following fil
 The README.rst and LICENSE files are self explanatory and below we will just discuss the `setup.py` and `MANIFEST.in` files.
 
 .. _setup.py:
+
 setup.py
 ~~~~~~~~
 
@@ -69,13 +70,16 @@ At this point, you may be wondering how the ``requirements.txt`` paradigm often 
   -e .[test]
 
 .. _MANIFEST.in:
+
 MANIFEST.in
 ~~~~~~~~~~~
 
+The ``MANIFEST.in``
 
 
+.. |wheels_link| raw:: html
 
-.. _Wheels: http://wheel.readthedocs.org/en/latest/
+  <a href="http://wheel.readthedocs.org/en/latest/" target="_blank">wheels</a>
 
 .. |good_discussion_here| raw:: html
 
