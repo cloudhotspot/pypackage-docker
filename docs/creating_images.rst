@@ -1,3 +1,0 @@
-Creating Images
-===============
-

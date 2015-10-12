@@ -1,2 +1,2 @@
-Creating Release Images
-=======================
+Creating the Release Image
+==========================

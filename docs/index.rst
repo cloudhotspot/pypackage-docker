@@ -17,8 +17,10 @@ Contents:
 
    introduction
    application_requirements
-   creating_images
-   building_artefacts
+   configuring_environment
+   creating_base_images
+   creating_builder_images
+   building_packages
    creating_release_images
    creating_dev_images
    todo
