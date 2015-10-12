@@ -13,6 +13,8 @@ This image should include common packages and configuration used for all other i
 
 .. note:: It is quite possible (and probably recommended to reduce complexity) that a base image may span mutiples projects.  Always strive for reusability where possible.
 
+.. _building-the-base-image:
+
 Building the Base Image
 -----------------------
 
@@ -20,25 +22,30 @@ To build the base image, use the ``make image`` command as follows:
 
 ``make image docker/base``
 
-The ``docker/base`` argument is the relative path to the folder where the base image Dockerfile is located.  The naming of the ``base`` folder is important as the ``Makefile`` uses this convention to set attach a build context to the base image name.
+The **docker/base** argument is the relative path to the folder where the base image Dockerfile is located.  Under the hood the ``make image docker/base`` command is calling:
+
+`docker build -t cloudhotspot/sampledjangoapp-base:latest -f docker/base/Dockerfile docker/base`
+
+The naming of the **base** folder is important as the ``Makefile`` uses this as a convention to set attach a build context to the base image name.
 
 For example, assuming the following environment configuration:
 
 * REPO_NS = cloudhotspot
 * IMAGE_NAME = sampledjangoapp
+* VERSION = latest
 
-Running ``make image docker/base`` will create an image named as follows:
+Running ``make image docker/base`` will create an image tagged as follows:
 
-``cloudhotspot/sampledjangoapp-base``
+* **cloudhotspot/sampledjangoapp-base:latest**
 
-If your base image Dockerfile was located in ``docker/foundation``, then ``make image docker/foundation`` would create the following image:
+If your base image Dockerfile was located in **docker/foundation**, then ``make image docker/foundation`` would create the following image:
 
-``cloudhotspot/sampledjangoapp-foundation``
+* **cloudhotspot/sampledjangoapp-foundation:latest**
 
 Base Image Internals
 --------------------
 
-The |sample_base_image| in the PyPackage repository is located in the ``docker/base`` folder and includes the following files:
+The |sample_base_image| in the PyPackage repository is located in the **docker/base** folder and includes the following files:
 
 * Dockerfile
 * entrypoint.sh
@@ -87,7 +94,7 @@ The base image also:
 entrypoint.sh
 ~~~~~~~~~~~~~
 
-The ``entrypoint.sh`` shell script is very simple:
+The **entrypoint.sh** shell script is very simple:
 
 .. code-block:: bash
 
