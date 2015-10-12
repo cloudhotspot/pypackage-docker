@@ -76,7 +76,6 @@ The sample Dockerfile for the base image is listed below:
   RUN chmod +x /usr/local/bin/entrypoint.sh
   ENTRYPOINT ["entrypoint.sh"]
 
-
 As you can see, the base image is based from the official Ubuntu Trusty Docker image and includes the following packages:
 
 * python (Python 2.7)
