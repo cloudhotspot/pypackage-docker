@@ -56,7 +56,7 @@ The following discusses important settings in the ``setup.py`` file:
 
 * ``include_package_data = True`` - ensures that package data files such as templates and views are included in the application package.  Note these files must also be specified in `MANIFEST.in`.
 
-* ``install_requires`` - specifies all of the various Python package dependencies for the project.  This is analogous to the `requirements.txt` file often used in Django projects.
+* ``install_requires`` - specifies all of the various Python package dependencies for the project.  This is analogous to the ``requirements.txt`` file often used in Django projects.
 
 * ``extras_require`` - allows you to define *conditional requirements*.  In the example above, a conditional requirement called **test** is defined which specifies a single package dependency.  This setting allows you to control if specific dependencies should be built.
 
@@ -83,7 +83,7 @@ MANIFEST.in
 
 The ``MANIFEST.in`` file specifies which data files should be included in the application package(s). 
 
-.. note:: The `include_package_data = true` setting must be present in `setup.py` for the `MANIFEST.in` configuration to be applied
+.. note:: The ``include_package_data = true`` setting must be present in ``setup.py`` for the ``MANIFEST.in`` configuration to be applied
 
 The example ``MANIFEST.in`` file included with the sample application ensures all subdirectories and files in the following locations (relative to the application root) will be included in the application package(s):
 
@@ -97,14 +97,17 @@ The example ``MANIFEST.in`` file included with the sample application ensures al
   recursive-include polls/static *
   recursive-include templates *
 
-Applications
-------------
+Application Packages
+--------------------
 
-All applications that are to be packaged under the root project folder must include an empty ``__init__.py`` file within the top-level folder of the application.
+All applications that are to be packaged under the root project folder must include an empty ``__init__.py`` file within the top-level folder of the application.  This includes the project package which includes ``settings.py``, ``urls.py`` and ``wsgi.py``.
 
-By default, any application created via the Django admin tools within a project includes an ``__init__.py`` file, so the application will be packaged.
+By default, any application created via the Django admin tools within a project includes an ``__init__.py`` file, so the application will be packaged and no manual intervention is included.
 
 The ``setup.py`` file uses the ``packages = find_packages()`` setting to automatically locate all applications within the project.
+
+-- note:: |this_repository| includes the |django_sample_application|, which creates a project package called ``mysite`` and a supporting application package called ``polls``.
+
 
 .. |wheels_link| raw:: html
 
@@ -113,3 +116,11 @@ The ``setup.py`` file uses the ``packages = find_packages()`` setting to automat
 .. |good_discussion_here| raw:: html
 
   <a href="https://caremad.io/2013/07/setup-vs-requirement/" target="_blank">good discussion here</a>
+
+.. |this_repository| raw:: html
+
+  <a href="https://github.com/cloudhotspot/pypackage-docker" target="_blank">The Github repository for PyPackage Docker</a>
+
+.. |django_sample_application| raw:: html
+
+  <a href="https://docs.djangoproject.com/en/1.8/intro/tutorial01/" target="_blank">Django sample application</a>
