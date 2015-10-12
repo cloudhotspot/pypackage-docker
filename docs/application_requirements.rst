@@ -29,7 +29,7 @@ setup.py
 
 The ``setup.py`` file provides the specification of how to build your application into package(s).  
 
-A sample setup.py_ file is included in the PyPackage Docker repository::
+A sample |setup_py| file is included in the PyPackage Docker repository::
   
   from setuptools import setup, find_packages
 
@@ -85,7 +85,7 @@ The ``MANIFEST.in`` file specifies which data files should be included in the ap
 
 .. note:: The ``include_package_data = true`` setting must be present in ``setup.py`` for the ``MANIFEST.in`` configuration to be applied
 
-The example ``MANIFEST.in`` file included with the sample application ensures all subdirectories and files in the following locations (relative to the application root) will be included in the application package(s):
+The example |manifest_in| file included with the sample application ensures all subdirectories and files in the following locations (relative to the application root) will be included in the application package(s):
 
 * ``polls/templates``
 * ``polls/static``
@@ -109,10 +109,13 @@ The ``setup.py`` file uses the ``packages = find_packages()`` setting to automat
 
 .. note:: |this_repository| includes the |django_sample_application|, which creates a project package called ``mysite`` and a supporting application package called ``polls``.
 
-
 .. |wheels_link| raw:: html
 
   <a href="http://wheel.readthedocs.org/en/latest/" target="_blank">wheels</a>
+
+.. |setup_py| raw:: html
+
+  <a href="https://github.com/cloudhotspot/pypackage-docker/blob/master/src/setup.py" target="_blank">setup.py</a>
 
 .. |good_discussion_here| raw:: html
 
@@ -121,6 +124,11 @@ The ``setup.py`` file uses the ``packages = find_packages()`` setting to automat
 .. |this_repository| raw:: html
 
   <a href="https://github.com/cloudhotspot/pypackage-docker" target="_blank">The Github repository for PyPackage Docker</a>
+
+.. |manifest_in| raw:: html
+
+  <a href="https://github.com/cloudhotspot/pypackage-docker/blob/master/src/MANIFEST.in" target="_blank">MANIFEST.in</a>
+
 
 .. |django_sample_application| raw:: html
 
