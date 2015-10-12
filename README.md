@@ -34,6 +34,47 @@ Creates a Docker image using the `docker build` command.
 
 `<path/to/build/path>` optionally represents the path to where any files added in the Dockerfile should be sourced from.  If this is omitted, the build path is assumed to be the same as `<path/to/dockerfile>`
 
+### Building Artefacts
+
+#### `make build` 
+
+Builds application artefacts and dependencies as specified in the `install_requires` section of `setup.py`.  
+
+This executes the command:
+
+`docker run --rm -v "$(pwd)"/src:/application -v "$(pwd)"/wheelhouse:/wheelhouse $REPO_NS/$REPO_NAME-build:$VERSION `
+
+
+#### `make build <conditional requirement>`
+
+Builds application artefacts and dependencies as specified in the `install_requires` section of `setup.py`, along with additional dependencies defined by the `<conditional requirement>` envrionment specifier in the `extras_require` section of `setup.py`.
+
+This executes the command:
+
+`docker run --rm -v "$(pwd)"/src:/application -v "$(pwd)"/wheelhouse:/wheelhouse $REPO_NS/$REPO_NAME-build:$VERSION pip wheel .[<conditional requirement>]`
+
+For example, given the following setup.py snippet:
+
+```python
+setup.py (
+...
+install_requires = ["Django>=1.8.5",
+                    "uwsgi>=2.0"],
+extras_require   = {
+                      "test": ["coverage"],
+                   },
+...
+)
+```
+
+`make build` will create only the `Django` and `uwsgi` dependency artefacts.  `make build test` will create `Django`, `uwsgi` and `coverage` dependency artefacts.
+
+> If an invalid conditional requirement is specified, it is ignored gracefully and the result will be the same as `make build`
+
+#### `make build cmd <command string>`
+
+Runs arbitrary commands as specified by the `<command string>` in the builder image.
+
 
 ## Base Image
 
