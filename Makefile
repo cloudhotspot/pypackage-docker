@@ -1,7 +1,6 @@
 REPO_NS ?= cloudhotspot
 REPO_VERSION ?= latest
 IMAGE_NAME ?= sampledjangoapp
-APP_NAME ?= sampleapp
 PORTS ?= 8000:8000
 
 .PHONY: image build release run manage clean test
@@ -66,13 +65,13 @@ build:
 	docker run --rm -v "$$(pwd)"/src:/application -v "$$(pwd)"/wheelhouse:/wheelhouse $(REPO_NS)/$(IMAGE_NAME)-builder:$(REPO_VERSION) $(BUILD_CMD)
 
 release:
-	docker build -t $(REPO_NS)/$(IMAGE_NAME)-$(APP_NAME):$(REPO_VERSION) .
+	docker build -t $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) .
 
 run:
-	docker run -it --rm -p $(PORTS) $(ENV_VARS_STRING) $(REPO_NS)/$(IMAGE_NAME)-$(APP_NAME):$(REPO_VERSION) $(RUN_ARGS)
+	docker run -it --rm -p $(PORTS) $(ENV_VARS_STRING) $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) $(RUN_ARGS)
 
 manage:
-	docker run -it --rm -p $(PORTS) $(REPO_NS)/$(IMAGE_NAME)-$(APP_NAME):$(REPO_VERSION) manage.py $(MANAGE_ARGS)
+	docker run -it --rm -p $(PORTS) $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) manage.py $(MANAGE_ARGS)
 
 clean:
 	rm -rf wheelhouse
