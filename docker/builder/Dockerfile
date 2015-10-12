@@ -1,4 +1,4 @@
-FROM cloudhotspot/pypackage-base
+FROM cloudhotspot/sampledjangoapp-base
 MAINTAINER Justin Menga <justin.menga@cloudhotspot.co>
 
 # Install build dependencies
