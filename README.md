@@ -2,7 +2,37 @@
 
 A methodology for packaging Python and Django applications using Docker and Wheels.
 
-## Introduction
+## Quick Start
+
+The basic workflow is as follows:
+
+- Create base image - `make image docker/base`
+- Create builder image - `make image docker/builder`
+- Build release image - `make build`
+- Create release image - `make release`
+- Run release image - `make run <command>` or `make manage <manage.py command>`
+
+### Creating Images
+
+#### `make image`
+
+Creates a Docker image using the `docker build` command.  The executed command is:
+
+`docker build -t $REPO_NS/$REPO_NAME:$VERSION -f ./Dockerfile .`
+
+which is equivalent to:
+
+`docker build -t $REPO_NS/$REPO_NAME:$VERSION .`
+
+> A Dockerfile must be present in the project root for `make image` to work
+
+#### `make image <path/to/dockerfile> [<path/to/build/path>]`
+
+Creates a Docker image using the `docker build` command.  
+
+`<path/to/dockerfile>` represents the path to the folder containing the Dockerfile.
+
+`<path/to/build/path>` optionally represents the path to where any files added in the Dockerfile should be sourced from.  If this is omitted, the build path is assumed to be the same as `<path/to/dockerfile>`
 
 
 ## Base Image
@@ -138,3 +168,9 @@ Run application release
 `docker run -it --rm -p 8000:8000 pypackage-sampleapp`
 
 uwsgi --http :8000 --module mysite.wsgi --static-map /static=/var/www/mysite/static
+
+## TODO
+
+- Add support to pass environment variables
+- Add support for modular settings
+- Add example for creating dev/test images
