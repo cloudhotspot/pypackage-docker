@@ -17,15 +17,36 @@ Project Root
 
 At a minimum, the project root of your Django project requires the following files:
 
-* ``setup.py``
-* ``MANIFEST.in``
-* ``README.rst``
-* ``LICENSE``
+* setup.py
+* MANIFEST.in
+* README.rst
+* LICENSE
 
 
-``setup.py``
-------------
+setup.py
+--------
 
-The setup.py
+The ``setup.py`` file provides the specification of how to build your application into package(s).  
 
-.. _wheels: http://wheel.readthedocs.org/en/latest/
+A sample setup.py_ file is included in the PyPackage Docker repository::
+  
+  from setuptools import setup, find_packages
+
+  setup (
+      name                 = "SampleDjangoApp",
+      version              = "0.1",
+      description          = "Example Django Application",
+      packages             = find_packages(),
+      scripts              = ["manage.py"],
+      include_package_data = True,
+      install_requires     = ["Django>=1.8.5",
+                              "uwsgi>=2.0"],
+      extras_require       = {
+                                "test": ["coverage"],
+                             },
+  )
+
+
+
+
+.. _Wheels: http://wheel.readthedocs.org/en/latest/
