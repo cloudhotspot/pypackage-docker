@@ -3,13 +3,25 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to PyPackage Docker's documentation!
-============================================
+PyPackage Docker
+================
+
+Welcome to the PyPackage Docker documentation!
+
+PyPackage Docker is a methodology for packaging Python and Django applications using Docker and Python Wheels.
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
+
+   introduction
+   application_requirements
+   creating_images
+   building_artefacts
+   creating_release_images
+   creating_dev_images
+   todo
 
 
 
