@@ -47,26 +47,33 @@ A sample setup.py_ file is included in the PyPackage Docker repository::
                              },
   )
 
-The ``packages = find_packages()`` setting allows packages to be found dynamically.  Any folder that includes the file ``__init__.py`` will be considered a package.
 
-The ``scripts = ["manage.py"]`` setting configures the Django `manage.py` script to be installed at the `bin` folder in the virtual environment.  As this is in the PATH environment variable, any scripts can be executed from any location when the virtual envrionment is activated.
+The following discusses important settings in the ``setup.py`` file:
 
-The ``include_package_data = True`` setting ensures that package data files such as templates and views are included in the application artefact.  Note these files must also be specified in `MANIFEST.in`.
+* ``packages = find_packages()`` - allows packages to be found dynamically.  Any folder that includes the file ``__init__.py`` will be considered a package.
 
-The ``install_requires`` setting specifies all of the various Python package dependencies for the project.  This is analogous to the `requirements.txt` file often used in Django projects.
+* ``scripts = ["manage.py"]`` - configures the Django `manage.py` script to be installed at the `bin` folder within the PATH environment variable in the target physical/virtual environment.  This allows the specified scripts to be executed from any location within the target physical/virtual environment.
 
-The ``extras_require`` setting allows you to define *conditional requirements*.  In the example above, a conditional requirement called **test** is defined which specifies a single package dependency.  This setting allows you to control if specific dependencies should be built.
+* ``include_package_data = True`` - ensures that package data files such as templates and views are included in the application package.  Note these files must also be specified in `MANIFEST.in`.
 
-At this point, you may be wondering how the ``requirements.txt`` paradigm often used in Django applications fits.  These can and should still exist, and there is a |good_discussion_here| as to how you should structure dependencies between ``setup.py`` and ``requirements.txt``.  At the most basic level, the following examples show how you can reference your ``setup.py`` dependencies from your ``requirements.txt`` files:
+* ``install_requires`` - specifies all of the various Python package dependencies for the project.  This is analogous to the `requirements.txt` file often used in Django projects.
 
-.. code-block:: none
+* ``extras_require`` - allows you to define *conditional requirements*.  In the example above, a conditional requirement called **test** is defined which specifies a single package dependency.  This setting allows you to control if specific dependencies should be built.
 
-  """ requirements.txt """
+At this point, you may be wondering how the ``requirements.txt`` paradigm often used in Django applications fits in.  
+
+These files can and should still exist, and there is a |good_discussion_here| as to how you should structure dependencies between ``setup.py`` and ``requirements.txt``.  
+
+At the most basic level, the following examples show how you can reference your ``setup.py`` dependencies from your ``requirements.txt`` files:
+
+.. code-block:: python
+
+  # requirements.txt
   -e .
 
-.. code-block:: none
+.. code-block:: python
 
-  """ requirements-test.txt """
+  # requirements-test.txt
   -e .[test]
 
 .. _MANIFEST.in:
@@ -74,8 +81,30 @@ At this point, you may be wondering how the ``requirements.txt`` paradigm often 
 MANIFEST.in
 ~~~~~~~~~~~
 
-The ``MANIFEST.in``
+The ``MANIFEST.in`` file specifies which data files should be included in the application package(s). 
 
+.. note:: The `include_package_data = true` setting must be present in `setup.py` for the `MANIFEST.in` configuration to be applied
+
+The example ``MANIFEST.in`` file included with the sample application ensures all subdirectories and files in the following locations (relative to the application root) will be included in the application package(s):
+
+* ``polls/templates``
+* ``polls/static``
+* ``templates``
+
+.. code-block:: none
+
+  recursive-include polls/templates *
+  recursive-include polls/static *
+  recursive-include templates *
+
+Applications
+------------
+
+All applications that are to be packaged under the root project folder must include an empty ``__init__.py`` file within the top-level folder of the application.
+
+By default, any application created via the Django admin tools within a project includes an ``__init__.py`` file, so the application will be packaged.
+
+The ``setup.py`` file uses the ``packages = find_packages()`` setting to automatically locate all applications within the project.
 
 .. |wheels_link| raw:: html
 
