@@ -56,13 +56,13 @@ The ``install_requires`` setting specifies all of the various Python package dep
 
 The ``extras_require`` setting allows you to define *conditional requirements*.  In the example above, a conditional requirement called **test** is defined which specifies a single package dependency.  This setting allows you to control if specific dependencies should be built.
 
-At this point, you may be wondering how the ``requirements.txt`` paradigm often used in Django applications fits.  These can and should still exist, and there is a good discussion here as to how you should structure dependencies between ``setup.py`` and ``requirements.txt``.  At the most basic level, the following examples show how you can reference your ``setup.py`` dependencies from your ``requirements.txt`` files:
+At this point, you may be wondering how the ``requirements.txt`` paradigm often used in Django applications fits.  These can and should still exist, and there is a |good_discussion_here| as to how you should structure dependencies between ``setup.py`` and ``requirements.txt``.  At the most basic level, the following examples show how you can reference your ``setup.py`` dependencies from your ``requirements.txt`` files:
 
-.. code-block:: text
+.. code-block:: none
   """ requirements.txt """
   -e .
 
-.. code-block:: text
+.. code-block:: none
   """ requirements-test.txt """
   -e .[test]
 
@@ -74,3 +74,5 @@ MANIFEST.in
 
 
 .. _Wheels: http://wheel.readthedocs.org/en/latest/
+.. |good_discussion_here|::
+  <a href="https://caremad.io/2013/07/setup-vs-requirement/" target="_blank">good discussion here</a>
