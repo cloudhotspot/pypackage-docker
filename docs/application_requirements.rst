@@ -129,7 +129,6 @@ The ``setup.py`` file uses the ``packages = find_packages()`` setting to automat
 
   <a href="https://github.com/cloudhotspot/pypackage-docker/blob/master/src/MANIFEST.in" target="_blank">MANIFEST.in</a>
 
-
 .. |django_sample_application| raw:: html
 
   <a href="https://docs.djangoproject.com/en/1.8/intro/tutorial01/" target="_blank">Django sample application</a>

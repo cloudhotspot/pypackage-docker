@@ -87,7 +87,7 @@ The base image also:
 entrypoint.sh
 ~~~~~~~~~~~~~
 
-The `entrypoint.sh` shell script is very simple:
+The ``entrypoint.sh`` shell script is very simple:
 
 .. code-block:: bash
 
@@ -95,12 +95,19 @@ The `entrypoint.sh` shell script is very simple:
   . /appenv/bin/activate
   exec $@
 
-All this script does is simply activate the virtual environment and then execute any arguments passed to the script.  This leverages the behaviour of Docker entrypoints, where any arguments passed at the end of the ``docker run`` command are passed as arguments to the image entrypoint.  This allows arbitrary commands to be run within the virtual environment, increasing the utility of the image.
+All this script does is simply activate the virtual environment and then execute any arguments passed to the script.  This leverages the behaviour of Docker entrypoints, where any arguments passed at the end of the ``docker run`` command are passed as arguments to the image entrypoint.  
+
+This allows arbitrary commands to be run within the virtual environment, increasing the utility of the image.  For example, the following executes the command ``pip -V`` in the Docker container to display the installed ``pip`` version:
+
+.. code-block:: bash
+
+  $ docker run -it --rm cloudhotspot/sampledjangoapp-base pip -V
+  pip 7.1.2 from /appenv/local/lib/python2.7/site-packages (python 2.7)
 
 .. note:: Using ``exec`` ensures the command executed will run as PID 1 in the Docker container (rather than the bash shell).  This is important for ensuring the container can exit and shutdown cleanly. 
 
 
-.. |sample_base_image| html:: raw
+.. |sample_base_image| raw:: html
 
   <a href="https://github.com/cloudhotspot/pypackage-docker/tree/master/docker/base" target="_blank">sample base image</a>
 
