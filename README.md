@@ -56,12 +56,12 @@ This repository includes a `Makefile` that simplifies the commands you need to e
 
 The `Makefile` relies on a number of different environment settings.  These settings can all be configured by setting the environment variable to an appropriate value:
 
-- REPO_NS - the namespace used to build Docker images.  Set this to your Docker hub organization name.  The default namespace value is **cloudhotspot**.
-- REPO_VERSION - the version to tag to built Docker images.  By default this is set to **latest**.
-- IMAGE_NAME - the image name used to build Docker images.  Set this to a name that describes your application.  The default image name is **sampledjangoapp**
-- PORTS - a space limited set of port mappings that will applied to any underlying `docker run` command.
-- VOLUMES - a space limited set of volume mappings that will applied to any underlying `docker run` command.
-- ENV_VARS - a space delimited set of environment variables that will applied to any underlying `docker run` command.
+- `REPO_NS` - the namespace used to build Docker images.  Set this to your Docker hub organization name.  The default namespace value is **cloudhotspot**.
+- `REPO_VERSION` - the version to tag to built Docker images.  By default this is set to **latest**.
+- `IMAGE_NAME` - the image name used to build Docker images.  Set this to a name that describes your application.  The default image name is **sampledjangoapp**
+- `PORTS` - a space limited set of port mappings that will applied to any underlying `docker run` command.
+- `VOLUMES` - a space limited set of volume mappings that will applied to any underlying `docker run` command.
+- `ENV_VARS` - a space delimited set of environment variables that will applied to any underlying `docker run` command.
 
 For example:
 
@@ -79,6 +79,7 @@ In the example above, whenever `docker run` is called (e.g. using `make run`) th
 ```bash
 $ docker run -it --rm -p 8000:8000 -p 8443:8443 \
     -e MY_CUSTOM_VAR1=my_custom_value_1 -e MY_CUSTOM_VAR2=my_custom_value_2 \
+    -v /host/data/path:/container/data/path \
     example/myapp:1.0 <command>
 ```
 
@@ -92,9 +93,11 @@ The base image is the parent image from which all other images are built.  Accor
 
 The <a href="https://github.com/cloudhotspot/pypackage-docker/blob/master/docker/base/Dockerfile" target="_blank">sample base image</a> includes all of the above.  
 
-The base image is built using the `make image <path/to/dockerfile-folder> [<path/to/image/path>]`` command.
+The base image is built using the following command:
 
-To build the sample base image:
+`make image <path/to/dockerfile-folder> [<path/to/image/path>]`
+
+For example, to build the sample base image:
 
 `make image docker/base`
 
@@ -112,9 +115,11 @@ The builder image is responsible for building application packages as Python whe
 
 The builder image should include operating system packages, tools and settings applicable to building the target application package and all development, test and production dependencies.
 
-The builder image is built using the `make image <path/to/dockerfile-folder> [<path/to/image/path>]`` command.
+The builder image is built using the following command:
 
-To build the <a href="https://github.com/cloudhotspot/pypackage-docker/blob/master/docker/builder/Dockerfile" target="_blank">sample builder image</a>:
+`make image <path/to/dockerfile-folder> [<path/to/image/path>]`
+
+For example, to build the <a href="https://github.com/cloudhotspot/pypackage-docker/blob/master/docker/builder/Dockerfile" target="_blank">sample builder image</a>:
 
 `make image docker/builder`
 
@@ -140,7 +145,7 @@ cloudhotspot/sampledjangoapp-base      latest              4ad1d509a823        2
 
 You can now build your application and dependency packages using the `make build` command:
 
-`make build [<conditional-requirement> | cmd <command-string>]
+`make build [<conditional-requirement> | cmd <command-string>]`
 
 The `make build` command will:
 
@@ -257,7 +262,7 @@ Builds application artefacts and dependencies as specified in the `install_requi
 
 This executes the command:
 
-`docker run --rm -v "$(pwd)"/src:/application -v "$(pwd)"/wheelhouse:/wheelhouse $REPO_NS/$REPO_NAME-build:$VERSION `
+`docker run --rm -v "$(pwd)"/src:/application -v "$(pwd)"/wheelhouse:/wheelhouse $REPO_NS/$REPO_NAME-builder:$VERSION `
 
 
 #### `make build <conditional requirement>`

@@ -12,7 +12,7 @@ ifeq (image,$(firstword $(MAKECMDGOALS)))
   	IMAGE_FILE_PATH := $(firstword $(IMAGE_ARGS))
   	IMAGE_PATH := $(word 2, $(IMAGE_ARGS))
     ifndef IMAGE_PATH
-			IMAGE_PATH := $(IMAGE_FILE_PATH)
+			IMAGE_PATH := .
     endif
   	IMAGE_CONTEXT := -$(notdir $(IMAGE_FILE_PATH))
   else
@@ -34,6 +34,12 @@ endif
 ifeq (manage,$(firstword $(MAKECMDGOALS)))
   MANAGE_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
   $(eval $(MANAGE_ARGS):;@:)
+endif
+
+# Extract test arguments
+ifeq (test,$(firstword $(MAKECMDGOALS)))
+  TEST_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(TEST_ARGS):;@:)
 endif
 
 # Extract build arguments
@@ -87,3 +93,6 @@ manage:
 
 clean:
 	rm -rf wheelhouse
+
+test: 
+	docker run -it --rm $(REPO_NS)/$(IMAGE_NAME)-test:$(REPO_VERSION) $(TEST_ARGS)
