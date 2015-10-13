@@ -51,27 +51,39 @@ ifeq (build,$(firstword $(MAKECMDGOALS)))
   $(eval $(BUILD_CMD):;@:)
 endif
 
-# Extract and format environment variable string
+# Extract and format environment variable string, ports, volumes
 ifdef ENV_VARS
   EMPTY :=
 	SPACE := $(EMPTY) $(EMPTY)
 	ENV_VARS_STRING = -e $(subst $(SPACE), -e ,$(ENV_VARS))
 endif
 
+ifdef PORTS
+	EMPTY :=
+	SPACE := $(EMPTY) $(EMPTY)
+	PORTS_STRING = -p $(subst $(SPACE), -p ,$(PORTS))
+endif
+
+ifdef VOLUMES
+	EMPTY :=
+	SPACE := $(EMPTY) $(EMPTY)
+	VOLUMES_STRING = -v $(subst $(SPACE), -v ,$(VOLUMES))
+endif
+
 image:
 	docker build -t $(REPO_NS)/$(IMAGE_NAME)$(IMAGE_CONTEXT):$(REPO_VERSION) -f $(IMAGE_FILE_PATH)/Dockerfile $(IMAGE_PATH)
 
 build:
-	docker run --rm -v "$$(pwd)"/src:/application -v "$$(pwd)"/wheelhouse:/wheelhouse $(REPO_NS)/$(IMAGE_NAME)-builder:$(REPO_VERSION) $(BUILD_CMD)
+	docker run --rm $(PORTS_STRING) $(ENV_VARS_STRING) $(VOLUMES_STRING) -v "$$(pwd)"/src:/application -v "$$(pwd)"/wheelhouse:/wheelhouse $(REPO_NS)/$(IMAGE_NAME)-builder:$(REPO_VERSION) $(BUILD_CMD)
 
 release:
 	docker build -t $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) .
 
 run:
-	docker run -it --rm -p $(PORTS) $(ENV_VARS_STRING) $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) $(RUN_ARGS)
+	docker run -it --rm $(PORTS_STRING) $(ENV_VARS_STRING) $(VOLUMES_STRING) $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) $(RUN_ARGS)
 
 manage:
-	docker run -it --rm -p $(PORTS) $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) manage.py $(MANAGE_ARGS)
+	docker run -it --rm $(PORTS_STRING) $(ENV_VARS_STRING) $(VOLUMES_STRING) $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) manage.py $(MANAGE_ARGS)
 
 clean:
 	rm -rf wheelhouse
