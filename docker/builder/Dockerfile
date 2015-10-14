@@ -7,7 +7,7 @@ RUN apt-get install -qy libffi-dev libssl-dev python-dev && \
     pip install wheel 
     
 # PIP environment variables (NOTE: must be set after installing wheel)
-ENV WHEELHOUSE=/wheelhouse PIP_WHEEL_DIR=/wheelhouse PIP_FIND_LINKS=/wheelhouse
+ENV WHEELHOUSE=/wheelhouse PIP_WHEEL_DIR=/wheelhouse PIP_FIND_LINKS=/wheelhouse XDG_CACHE_HOME=/cache
 
 # OUTPUT: Build artefacts (Wheels) are output here
 VOLUME /wheelhouse
