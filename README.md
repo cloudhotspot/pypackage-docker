@@ -1,16 +1,17 @@
 # Python Packager
 
-A methodology for packaging Python and Django applications using Docker and Wheels and supporting continuous integration.
+A methodology for continuous integration and packaging of Python and Django applications using Python Wheels and Docker. 
 
 Full documentation is provided at <a href="http://pypackage-docker.readthedocs.org">read the docs</a>.  
 
 The goals of this methodology include:
 
 - Portable workflow - you should be able to run this workflow locally on a developer machine or on a CI system like Jenkins.
-- Create deployable application artefacts (i.e. Python Wheels).
+- Create deployable **native** application artefacts (i.e. Python Wheels, not archives or operating system packages).
 - Create deployable runtime environment artefacts (i.e. Docker images). 
-- Eliminate development and test dependencies from product runtime environment artefacts.
-- Fast developer feedback - accelerate testing and build activities.
+- Eliminate development and test dependencies from production runtime environment artefacts.
+- Fast developer feedback - accelerate testing and build activities through Python Wheels caching.
+- Ease of use - reduce complexity of running long Docker commands to simple `make` style commands.
 
 ## Workflow
 
