@@ -77,22 +77,28 @@ ifdef VOLUMES
 endif
 
 image:
-	docker build -t $(REPO_NS)/$(IMAGE_NAME)$(IMAGE_CONTEXT):$(REPO_VERSION) -f $(IMAGE_FILE_PATH)/Dockerfile $(IMAGE_PATH)
+	@docker build -t $(REPO_NS)/$(IMAGE_NAME)$(IMAGE_CONTEXT):$(REPO_VERSION) -f $(IMAGE_FILE_PATH)/Dockerfile $(IMAGE_PATH)
 
 build:
-	docker run --rm $(PORTS_STRING) $(ENV_VARS_STRING) $(VOLUMES_STRING) -v "$$(pwd)"/src:/application -v "$$(pwd)"/wheelhouse:/wheelhouse $(REPO_NS)/$(IMAGE_NAME)-builder:$(REPO_VERSION) $(BUILD_CMD)
+	@if docker inspect $(REPO_NS)-$(IMAGE_NAME)-cache > /dev/null 2>&1; \
+	then docker run --rm $(PORTS_STRING) $(ENV_VARS_STRING) $(VOLUMES_STRING) -v "$$(pwd)"/src:/application -v "$$(pwd)"/wheelhouse:/wheelhouse --volumes-from $(REPO_NS)-$(IMAGE_NAME)-cache $(REPO_NS)/$(IMAGE_NAME)-builder:$(REPO_VERSION) $(BUILD_CMD); \
+	else docker run --rm $(PORTS_STRING) $(ENV_VARS_STRING) $(VOLUMES_STRING) -v "$$(pwd)"/src:/application -v "$$(pwd)"/wheelhouse:/wheelhouse $(REPO_NS)/$(IMAGE_NAME)-builder:$(REPO_VERSION) $(BUILD_CMD); fi
 
 release:
-	docker build -t $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) .
+	@docker build -t $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) .
 
 run:
-	docker run -it --rm $(PORTS_STRING) $(ENV_VARS_STRING) $(VOLUMES_STRING) $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) $(RUN_ARGS)
+	@docker run -it --rm $(PORTS_STRING) $(ENV_VARS_STRING) $(VOLUMES_STRING) $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) $(RUN_ARGS)
 
 manage:
-	docker run -it --rm $(PORTS_STRING) $(ENV_VARS_STRING) $(VOLUMES_STRING) $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) manage.py $(MANAGE_ARGS)
+	@docker run -it --rm $(PORTS_STRING) $(ENV_VARS_STRING) $(VOLUMES_STRING) $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) manage.py $(MANAGE_ARGS)
 
 clean:
-	rm -rf wheelhouse
+	@rm -rf wheelhouse
+	@docker rm $(REPO_NS)-$(IMAGE_NAME)-cache > /dev/null 2>&1 || true
+	@docker rmi $(REPO_NS)-$(IMAGE_NAME)-cache > /dev/null 2>&1 || true
 
 test: 
-	docker run -it --rm $(REPO_NS)/$(IMAGE_NAME)-test:$(REPO_VERSION) $(TEST_ARGS)
+	@if docker inspect $(REPO_NS)-$(IMAGE_NAME)-cache > /dev/null 2>&1; \
+  then docker run -it --rm --volumes-from $(REPO_NS)-$(IMAGE_NAME)-cache -v "$$(pwd)"/src:/application $(REPO_NS)/$(IMAGE_NAME)-test:$(REPO_VERSION) $(TEST_ARGS); \
+	else docker run -it -v /cache --name $(REPO_NS)-$(IMAGE_NAME)-cache -v "$$(pwd)"/src:/application $(REPO_NS)/$(IMAGE_NAME)-test:$(REPO_VERSION) $(TEST_ARGS); fi
