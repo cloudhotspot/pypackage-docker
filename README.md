@@ -1,6 +1,6 @@
 # Python Packager
 
-A methodology for continuous integration and packaging of Python and Django applications using Python Wheels and Docker. 
+A methodology for continuous integration and packaging of Python and Django applications using <a href="http://wheel.readthedocs.org/en/latest/" target="_blank">Python Wheels</a> and <a href="https://www.docker.com" target="_blank">Docker</a>. 
 
 Full documentation is provided at <a href="http://pypackage-docker.readthedocs.org">read the docs</a>.  
 
