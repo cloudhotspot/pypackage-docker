@@ -1,3 +1,4 @@
 .idea
-wheelhouse
+*.whl
 *.pyc
+wheelhouse
