@@ -1,6 +1,6 @@
-REPO_NS ?= cloudhotspot
+REPO_NS ?= mycompany
 REPO_VERSION ?= latest
-IMAGE_NAME ?= sampledjangoapp
+IMAGE_NAME ?= myapp
 PORTS ?= 8000:8000
 
 .PHONY: image build release run manage clean test
