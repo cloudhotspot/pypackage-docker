@@ -29,10 +29,11 @@ The CI workflow (assuming all tests pass) is as follows:
 - Commit to source code repository 
 - Build test image
 - Run unit tests inside image
-- Build and publish application artefacts
-- Build and publish runtime environment artefacts 
-- Deploy sandbox environment for application
-- Run functional tests
+- Build application artefacts
+- Build runtime environment artefacts 
+- Deploy sandbox environment for the full application stack (e.g. including databases, caches)
+- Run functional/integration tests against sandbox
+- Publish application and runtime environment artefacts 
 
 This project demonstrates the workflow outlined above, providing the ability to execute each step on any Linux/OS X machine running a Docker client with access to a Docker host.  This workflow can also be automated within a CI system such as Jenkins, triggered by a commit to the source code repository for the application.
 
@@ -246,6 +247,8 @@ Copying '/appenv/local/lib/python2.7/site-packages/django/contrib/admin/static/a
 
 ## TODO:
 
+- Add best practices for Django settings and how to apply different environment settings
+- Add automatic versioning
 - Add support to publish Python Wheels and Docker Images
 - Add sandbox environment (using docker-compose) and functional tests example
 - Add CI system example (e.g. using Jenkins or GoCD)
