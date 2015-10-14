@@ -1,4 +1,4 @@
-FROM cloudhotspot/sampledjangoapp-builder
+FROM mycompany/myapp-builder
 MAINTAINER Justin Menga <justin.menga@cloudhotspot.co>
 
 # Environment variables available to container

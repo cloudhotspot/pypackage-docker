@@ -1,192 +1,192 @@
 # Python Packager
 
-A methodology for packaging Python and Django applications using Docker and Wheels.
+A methodology for packaging Python and Django applications using Docker and Wheels and supporting continuous integration.
 
-## Quick Start
+The goals of this methodology include:
 
-The basic workflow is as follows:
+- Portable workflow - you should be able to run this workflow locally on a developer machine or on a CI system like Jenkins.
+- Create deployable application artefacts (i.e. Python Wheels).
+- Create deployable runtime environment artefacts (i.e. Docker images). 
+- Eliminate development and test dependencies from product runtime environment artefacts.
+- Fast developer feedback - accelerate testing and build activities.
+
+## Workflow
+
+The initial setup to get started is as follows:
 
 - Prepare your application
 - Configure your environment
-- Create base image - `make image docker/base`
-- Create builder image - `make image docker/builder`
-- Build application packages - `make build`
-- Create application image - `make release`
-- Run application image - `make run <command>` or `make manage <manage.py command>`
+- Create base image
+- Create builder image
 
-### Preparing your Application
+With the above in place, the CI workflow can take place.  The CI workflow is triggered on each source code commit and thus benefits the most from automation and performance optimisations.
 
-Your application requires a `setup.py` and `MANIFEST.in` file in the project root.
+The CI workflow (assuming all tests pass) is as follows:
 
-Here is the sample application `setup.py` file:
+- Commit to source code repository 
+- Build test image
+- Run unit tests inside image
+- Build and publish application artefacts
+- Build and publish runtime environment artefacts 
+- Deploy sandbox environment for application
+- Run functional tests
 
-```python
-from setuptools import setup, find_packages
+This project demonstrates the workflow outlined above, providing the ability to execute each step on any Linux/OS X machine running a Docker client with access to a Docker host.  This workflow can also be automated within a CI system such as Jenkins, triggered by a commit to the source code repository for the application.
 
-setup (
-    name                 = "SampleDjangoApp",
-    version              = "0.1",
-    description          = "Example Django Application",
-    packages             = find_packages(),
-    scripts              = ["manage.py"],
-    include_package_data = True,
-    install_requires     = ["Django>=1.8.5",
-                            "uwsgi>=2.0"],
-    extras_require       = {
-                              "test": ["coverage"],
-                           },
-)
-```
+## Quick Start
 
-You must include your application dependencies in the `install_requires` setting.  The `extras_require` setting allows you to specify conditional dependencies.  Refer to the <a href="http://pypackage-docker.readthedocs.org/en/latest/application_requirements.html#setup-py" target="_blank">documentation</a> for more information.
+Full documentation is provided at <a href="http://pypackage-docker.readthedocs.org">read the docs</a>.  
 
-Here is the sample `MANIFEST.in` file:
+The following provides an example to enable you to get started, and assumes you are using the included sample application located in the `src` folder.
 
-```text
-recursive-include polls/templates *
-recursive-include polls/static *
-recursive-include templates *
-```
+### Initial Setup
 
-In conjunction with the `include_package_data = True` setting in `setup.py`, this ensures template files, views and other content will be included in your application packages.
+Configure your environment either by setting environment variables or by configuring the `Makefile`:
 
-### Configuring your Environment
+```bash 
+REPO_NS ?= mycompany
+REPO_VERSION ?= latest
+IMAGE_NAME ?= myapp
+PORTS ?= 8000:8000
 
-This repository includes a `Makefile` that simplifies the commands you need to enter to perform the various tasks.
-
-The `Makefile` relies on a number of different environment settings.  These settings can all be configured by setting the environment variable to an appropriate value:
-
-- `REPO_NS` - the namespace used to build Docker images.  Set this to your Docker hub organization name.  The default namespace value is **cloudhotspot**.
-- `REPO_VERSION` - the version to tag to built Docker images.  By default this is set to **latest**.
-- `IMAGE_NAME` - the image name used to build Docker images.  Set this to a name that describes your application.  The default image name is **sampledjangoapp**
-- `PORTS` - a space limited set of port mappings that will applied to any underlying `docker run` command.
-- `VOLUMES` - a space limited set of volume mappings that will applied to any underlying `docker run` command.
-- `ENV_VARS` - a space delimited set of environment variables that will applied to any underlying `docker run` command.
-
-For example:
-
-```bash
-$ export REPO_NS=example
-$ export IMAGE_NAME=myapp
-$ export REPO_VERSION=1.0
-$ export PORTS="8000:8000 8443:443"
-$ export VOLUMES="/host/data/path:/container/data/path"
-$ export ENV_VARS="MY_CUSTOM_VAR1=my_custom_value_1 MY_CUSTOM_VAR2=my_custom_value_2"
-```
-
-In the example above, whenever `docker run` is called (e.g. using `make run`) the `docker run` command will execute as follows:
-
-```bash
-$ docker run -it --rm -p 8000:8000 -p 8443:8443 \
-    -e MY_CUSTOM_VAR1=my_custom_value_1 -e MY_CUSTOM_VAR2=my_custom_value_2 \
-    -v /host/data/path:/container/data/path \
-    example/myapp:1.0 <command>
-```
-
-### Creating the Base Image
-
-The base image is the parent image from which all other images are built.  Accordingly, the base image should:
-
-- Include common operating system packages and settings applicable to all child images.  
-- Create the virtual environment 
-- Include an entrypoint that activates the virtual environment and executes arbitray commands within the virtual environment
-
-The <a href="https://github.com/cloudhotspot/pypackage-docker/blob/master/docker/base/Dockerfile" target="_blank">sample base image</a> includes all of the above.  
-
-The base image is built using the following command:
-
-`make image <path/to/dockerfile-folder> [<path/to/image/path>]`
-
-For example, to build the sample base image:
-
-`make image docker/base`
-
-This will result in the following Docker command being executed:
-
-`docker build -t $REPO_NS/$REPO_NAME-base:$VERSION -f /docker/base/Dockerfile /docker/base`
-
-> Note that the `base` portion of the `docker/base` path determines the *image context*, which is appended to the Docker image name to differentiate between base, build and other images.
-
-See the <a href="http://pypackage-docker.readthedocs.org/en/latest/creating_base_images.html" target="_blank">documentation</a> for more details.
-
-### Creating the Builder Image
-
-The builder image is responsible for building application packages as Python wheels.  
-
-The builder image should include operating system packages, tools and settings applicable to building the target application package and all development, test and production dependencies.
-
-The builder image is built using the following command:
-
-`make image <path/to/dockerfile-folder> [<path/to/image/path>]`
-
-For example, to build the <a href="https://github.com/cloudhotspot/pypackage-docker/blob/master/docker/builder/Dockerfile" target="_blank">sample builder image</a>:
-
-`make image docker/builder`
-
-This will result in the following Docker command being executed:
-
-`docker build -t $REPO_NS/$REPO_NAME-builder:$VERSION -f /docker/build/Dockerfile /docker/build`
-
-> Note that the `builder` portion of the `docker/builder` path determines the *image context*, which is appended to the Docker image name to differentiate between base, build and other images.
-
-See the <a href="http://pypackage-docker.readthedocs.org/en/latest/creating_builder_images.html" target="_blank">documentation</a> for more details.
-
-### Building Packages
-
-Once the builder image created in the previous section is run you should have the base and builder Docker images in place:
-
-```bash
-$ docker images
-REPOSITORY                             TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
-cloudhotspot/sampledjangoapp-builder   latest              e2038a7c10d0        19 hours ago        366.7 MB
-cloudhotspot/sampledjangoapp-base      latest              4ad1d509a823        20 hours ago        253 MB
+.PHONY: image build release run manage clean test
+...
 ...
 ```
 
-You can now build your application and dependency packages using the `make build` command:
 
-`make build [<conditional-requirement> | cmd <command-string>]`
+Create the base image using the `make image docker/base` command:
 
-The `make build` command will:
+```bash
+$ make image docker/base
+docker build -t mycompany/myapp-base:0.1 -f docker/base/Dockerfile .
+Sending build context to Docker daemon  7.95 MB
+Step 0 : FROM ubuntu:trusty
+ ---> 91e54dfb1179
+ ...
+ ...
+Removing intermediate container 3fb1b4fbbb97
+Successfully built 7d763df4a3b4
+make: `docker/base' is up to date.
+```
 
-- Build your application
-- Build any dependencies defined in the `install_requires` setting of your `setup.py` file.
-- Output the built wheels to the `wheelhouse` folder
+Create the builder image using the `make image docker/builder` command.  Note that you must ensure the FROM directive in `docker/builder/Dockerfile` references the correct base image and version (see Step 0 below):
 
-The `make build test` command will:
+```bash
+$ make image docker/builder
+make image docker/builder
+docker build -t mycompany/myapp-builder:latest -f docker/builder/Dockerfile .
+Sending build context to Docker daemon 7.951 MB
+Step 0 : FROM mycompany/myapp-base:latest
+ ---> 333bb56f3d69
+...
+...
+Removing intermediate container 3fb1b4fbbb97
+Successfully built 9599b05c1a22
+make: `docker/builder' is up to date.
+```
 
-- Build your application
-- Build any dependencies defined in the `install_requires` setting of your `setup.py` file.
-- Build any dependencies defined with the `test` identifer of the `extras_require` setting of your `setup.py` file.
-- Output the built wheels to the `wheelhouse` folder
+### Continuous Integration Workflow
 
-The `make build cmd <command-string>` command will:
+With the application, environment, base and builder images in place, the normal continuous integration workflow can be executed.  This workflow would typically be invoked on each application source code commit in a production continuous integration system.  
 
-- Execute the supplied command string against the builder container
+However it is possible to complete the steps described below manually on a development machine as required.
 
-> The current `Makefile` requires your application source to be located within the `src` folder of the project root.
+On each commit, the continuous integration workflow starts with building a test image using the `make image docker/test` command:
 
-See the <a href="http://pypackage-docker.readthedocs.org/en/latest/building_packages.html" target="_blank">documentation</a> for more details.
+```bash
+$ make image docker/test
+docker build -t mycompany/myapp-test:latest -f docker/test/Dockerfile .
+Sending build context to Docker daemon 7.951 MB
+Step 0 : FROM mycompany/myapp-builder
+ ---> 9599b05c1a22
+ ...
+ ...
+Removing intermediate container ee2f5c4e64da
+Successfully built cf156ffad2aa
+make: `docker/test' is up to date.
+```
 
-### Creating Application Images
+With the test image built, you can run tests using the `make test` command.  This will run `python manage.py test` in a container based upon the test image:
 
-To build your production image, simply execute `make release`.  This requires a `Dockerfile` defined at the project root.
+```bash
+$ make test
+docker run -it --rm mycompany/myapp-test:latest
+Creating test database for alias 'default'...
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.045s
 
+OK
+Destroying test database for alias 'default'...
+```
 
+After testing is successful, application artefacts are built using the `make build` command.  This will output a Python Wheel for the application and each dependency in the `wheelhouse` folder:
 
-### Running your Application
+```bash
+$ make build
+docker run --rm -p 8000:8000   -v "$(pwd)"/src:/application -v "$(pwd)"/wheelhouse:/wheelhouse mycompany/myapp-builder:latest
+Processing /application
+Collecting Django>=1.8.5 (from SampleDjangoApp==0.1)
+...
+...
+Building wheels for collected packages: SampleDjangoApp
+  Running setup.py bdist_wheel for SampleDjangoApp
+  Stored in directory: /wheelhouse
+Successfully built SampleDjangoApp
+```
 
-To run your application, use the `make run` or `make manage` commands:
+> Once the wheelhouse folder is initially created on the first run of `make build`, further invocations of `make build` will use the wheelhouse folder as a cache, significantly speeding build time.
 
-- `make run <command-string>`
-- `make manage <django-admin-command>`
+With application artefacts built, the final step is to create a release image using the `make release` command.  This will create an image based from the base image, ensuring development and test dependencies are not included in production releases:
+
+```bash
+$ make release
+docker build -t mycompany/myapp:latest .
+Sending build context to Docker daemon 7.776 MB
+Step 0 : FROM mycompany/myapp-base
+ ---> 333bb56f3d69
+Step 1 : MAINTAINER Justin Menga <justin.menga@cloudhotspot.co>
+ ---> Using cache
+ ---> 28ddfe42068f
+Step 2 : ENV PORT 8000 PROJECT_NAME SampleDjangoApp
+ ---> Using cache
+ ---> b8c9c94396f8
+Step 3 : ADD wheelhouse /wheelhouse
+ ---> fe49bee27a1e
+Removing intermediate container 3459a4478d82
+Step 4 : RUN . /appenv/bin/activate &&     pip install --no-index -f wheelhouse ${PROJECT_NAME} &&     rm -rf /wheelhouse
+ ---> Running in 35e96329cb9a
+Ignoring indexes: https://pypi.python.org/simple
+Collecting SampleDjangoApp
+Collecting uwsgi>=2.0 (from SampleDjangoApp)
+Collecting Django>=1.8.5 (from SampleDjangoApp)
+Installing collected packages: uwsgi, Django, SampleDjangoApp
+Successfully installed Django-1.8.5 SampleDjangoApp-0.1 uwsgi-2.0.11.2
+ ---> 50ab4766770b
+Removing intermediate container 35e96329cb9a
+Step 5 : EXPOSE ${PORT}
+ ---> Running in f2fb97a491d0
+ ---> afb89cb5e94f
+Removing intermediate container f2fb97a491d0
+Successfully built afb89cb5e94f
+```
+
+### Running the Release Image
+
+With release application artefacts and runtime images built, they can be published (future enhancement to this project).  At this point, a continuous deployment workflow can be triggered (e.g. based upon a webhook configured on the release Docker image being published to a Docker Registry).
+
+You can also run arbitrary commands against the created release image, which can be useful.  The following commands can be used for this:
+
+- `make run <cmd>` - creates a container from the release image, runs an arbitrary command and destroys the container
+- `make manage <django admin cmd>` - creates a container from the release image, runs a Django admin command and destroys the container
 
 Examples:
 
 ```bash
 # Get an interactive prompt
 $ make run bash
-docker run -it --rm -p 8000:8000  cloudhotspot/sampledjangoapp:latest bash
+docker run -it --rm -p 8000:8000 mycompany/myapp:latest  bash
 root@a584b6cb23a6:/# manage.py check
 System check identified no issues (0 silenced).
 root@a584b6cb23a6:/# ping 8.8.8.8
@@ -197,7 +197,7 @@ PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
 ```bash
 # Run migrations
 $ make manage migrate
-docker run -it --rm -p 8000:8000 cloudhotspot/sampledjangoapp:latest manage.py migrate
+docker run -it --rm -p 8000:8000 mycompany/myapp:latest manage.py migrate
 Operations to perform:
   Synchronize unmigrated apps: staticfiles, messages
   Apply all migrations: admin, contenttypes, polls, auth, sessions
@@ -223,7 +223,7 @@ Running migrations:
 ```bash
 # Run collectstatic
  make -- manage collectstatic --noinput
-docker run -it --rm -p 8000:8000 cloudhotspot/sampledjangoapp:latest manage.py collectstatic --noinput
+docker run -it --rm -p 8000:8000 mycompany/myapp:latest manage.py collectstatic --noinput
 Copying '/appenv/local/lib/python2.7/site-packages/django/contrib/admin/static/admin/css/base.css'
 Copying '/appenv/local/lib/python2.7/site-packages/django/contrib/admin/static/admin/css/rtl.css'
 ...
@@ -232,206 +232,10 @@ Copying '/appenv/local/lib/python2.7/site-packages/django/contrib/admin/static/a
 
 > Use the `--` separate after the `make` command to allow any subsequent arguments to be passed to the `docker run` command, rather than being interpreted by the `make` command as arguments
 
+> Current there are some limitations related to how make works that restrict colons and possibly other special characters being used.
 
+## TODO:
 
-#### `make image`
-
-Creates a Docker image using the `docker build` command.  The executed command is:
-
-`docker build -t $REPO_NS/$REPO_NAME:$VERSION -f ./Dockerfile .`
-
-which is equivalent to:
-
-`docker build -t $REPO_NS/$REPO_NAME:$VERSION .`
-
-> A Dockerfile must be present in the project root for `make image` to work
-
-#### `make image <path/to/dockerfile> [<path/to/build/path>]`
-
-Creates a Docker image using the `docker build` command.  
-
-`<path/to/dockerfile>` represents the path to the folder containing the Dockerfile.
-
-`<path/to/build/path>` optionally represents the path to where any files added in the Dockerfile should be sourced from.  If this is omitted, the build path is assumed to be the same as `<path/to/dockerfile>`
-
-### Building Artefacts
-
-#### `make build` 
-
-Builds application artefacts and dependencies as specified in the `install_requires` section of `setup.py`.  
-
-This executes the command:
-
-`docker run --rm -v "$(pwd)"/src:/application -v "$(pwd)"/wheelhouse:/wheelhouse $REPO_NS/$REPO_NAME-builder:$VERSION `
-
-
-#### `make build <conditional requirement>`
-
-Builds application artefacts and dependencies as specified in the `install_requires` section of `setup.py`, along with additional dependencies defined by the `<conditional requirement>` envrionment specifier in the `extras_require` section of `setup.py`.
-
-This executes the command:
-
-`docker run --rm -v "$(pwd)"/src:/application -v "$(pwd)"/wheelhouse:/wheelhouse $REPO_NS/$REPO_NAME-build:$VERSION pip wheel .[<conditional requirement>]`
-
-For example, given the following setup.py snippet:
-
-```python
-setup.py (
-...
-install_requires = ["Django>=1.8.5",
-                    "uwsgi>=2.0"],
-extras_require   = {
-                      "test": ["coverage"],
-                   },
-...
-)
-```
-
-`make build` will create only the `Django` and `uwsgi` dependency artefacts.  `make build test` will create `Django`, `uwsgi` and `coverage` dependency artefacts.
-
-> If an invalid conditional requirement is specified, it is ignored gracefully and the result will be the same as `make build`
-
-#### `make build cmd <command string>`
-
-Runs arbitrary commands as specified by the `<command string>` in the builder image.
-
-
-## Base Image
-
-The base image is the foundation for all other images.  This image should include common packages and configuration used for both development and production images.
-
-The sample base image in this repository is located in `docker/base`.  
-
-The base image is based from the official Ubuntu Trusty Docker image and includes the following packages:
-
-- python (Python 2.7)
-- python-virtualenv
-- openssl
-- libpython2.7
-- libffi6
-
-The sample base image also includes the following:
-
-- A virtual environment is created at `/appenv`
-- An entrypoint script called `entrypoint.sh`
-
-The `entrypoint.sh` is a simple bash script that activates the virtual environment and executes the arguments passed to the script: 
-
-```bash
-#!/bin/bash
-. /appenv/bin/activate
-exec $@
-```
-
-This script allows you to pass in a command to a Docker container run from the image, which will run in the virtual environment.  
-
-In the example below, the `env` command demonstrates that the command is being executed in the virtual environment.
-
-```bash
-$ pypackage jmenga$ docker run -it --rm pypackage-base env
-HOSTNAME=2df33790f98e
-TERM=xterm
-VIRTUAL_ENV=/appenv
-PATH=/appenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-PWD=/
-PS1=(appenv)
-SHLVL=0
-HOME=/root
-```
-
-Any image that is built from the base image inherits the entrypoint script as the default entrypoint, unless explicitly overridden.
-
-### Creating the Base Image
-
-A `Makefile` is included that provides shortcuts for the various Docker commands.
-
-To build the base image from the project root:
-
-`make image docker/base`
-
-Under the hood this is calling:
-
-`docker build -t pypackage-base -f docker/base/Dockerfile docker/base`
-
-In general, the base image should be built infrequently and likely will be common to multiple projects.
-
-## Builder Image
-
-The purpose of the builder image is to compile and build application artefacts for your Python application.  
-
-The builder image must include all build dependencies required to compile and build the application. 
-
-The sample builder image in this repository is located in `docker/builder` and includes the following:
-
-- libffi-dev
-- libssl-dev
-- python-dev 
-- `wheel` package (i.e. `pip install wheel`)
-
-The builder image also includes two volumes:
-
-- `/application` - this is where the image will look for application source code that will be built into packages
-- `/wheelhouse` - this is where the image will output built application artefacts (wheels)
-
-The builder image specifies `/application` as its default working directory and passes in `pip wheel .` as the default command arguments, which will automatically build the applications in `/application`.
-
-### Creating the Builder Image
-
-To build the builder image from the project root:
-
-`make image docker/builder`
-
-Under the hood this is calling:
-
-`docker build -t pypackage-builder -f docker/builder/Dockerfile docker/builder`
-
-In general, the builder image should be built fairly infrequently and may be common to multiple projects.
-
-## Release Images
-
-Release images are intended for production environments.  They are built in two stages as follows:
-
-- Builder image is run, which creates application artefacts
-- Release image is built, installing the built application artefacts in a Docker image that only contains production dependencies
-
-### Building the Application Artefacts
-
-Application artefacts are built as wheels using the builder image.  This involves running the builder image with the following parameters:
-
-- The application source code root mapped to the `/application` volume
-- A folder mapped to the `/wheelhouse` volume.  This is where the builder image will output the artefacts.
-
-Here is an example of running the builder image:
-
-
-`docker run --rm -v "$(pwd)"/src:/application -v "$(pwd)"/wheelhouse:/wheelhouse pypackage-builder`
-
-
-
-Create base image:
-
-`docker build -t pypackage-base -f docker/base/Dockerfile docker/base`
-
-Create build image:
-
-`docker build -t pypackage-build -f docker/build/Dockerfile .`
-
-Create build:
-
-`docker run --rm -v "$(pwd)"/src:/application -v "$(pwd)"/wheelhouse:/wheelhouse pypackage-build`
-
-Create release image:
-
-`docker build -t pypackage-sampleapp .`
-
-Run application release
-
-`docker run -it --rm -p 8000:8000 pypackage-sampleapp`
-
-uwsgi --http :8000 --module mysite.wsgi --static-map /static=/var/www/mysite/static
-
-## TODO
-
-- Add support to pass environment variables
-- Add support for modular settings
-- Add example for creating dev/test images
+- Add support to publish Python Wheels and Docker Images
+- Add docker-compose.yml example
+- Add CI integration example

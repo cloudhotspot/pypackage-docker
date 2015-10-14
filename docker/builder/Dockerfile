@@ -1,4 +1,4 @@
-FROM cloudhotspot/sampledjangoapp-base
+FROM mycompany/myapp-base:latest
 MAINTAINER Justin Menga <justin.menga@cloudhotspot.co>
 
 # Install build dependencies
