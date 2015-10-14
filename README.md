@@ -67,7 +67,11 @@ PORTS ?= 8000:8000
 ...
 ```
 
-Create the base image using the `make image docker/base` command.  The base image should include any common dependencies/configuration settings to both development/test images and production images.  The base image includes an entrypoint script `entrypoint.sh` that activates the Python virtual environment and runs any command in the virtual environment.  This entrypoint is inherited by all child images, promoting reusability.
+Create the base image using the `make image docker/base` command.  
+
+The base image should include any common dependencies/configuration settings to both development/test images and production images.  
+
+The base image includes an entrypoint script `entrypoint.sh` that activates the Python virtual environment and runs any command in the virtual environment.  This entrypoint is inherited by all child images, promoting reusability.
 
 ```bash
 $ make image docker/base
