@@ -39,6 +39,13 @@ This project demonstrates the workflow outlined above, providing the ability to 
 
 The following provides an example to enable you to get started, and assumes you are using the included sample application located in the `src` folder.
 
+### Prerequisites
+
+- Linux/OS X computer
+- Docker client (the workflow has been tested on Docker 1.8)
+- Docker daemon (either running locally, on local VM or on a remote host)
+- Docker daemon must have Internet connectivity
+
 ### Initial Setup
 
 Configure your environment either by setting environment variables or by configuring the `Makefile`:
