@@ -2,6 +2,8 @@
 
 A methodology for packaging Python and Django applications using Docker and Wheels and supporting continuous integration.
 
+Full documentation is provided at <a href="http://pypackage-docker.readthedocs.org">read the docs</a>.  
+
 The goals of this methodology include:
 
 - Portable workflow - you should be able to run this workflow locally on a developer machine or on a CI system like Jenkins.
@@ -34,8 +36,6 @@ The CI workflow (assuming all tests pass) is as follows:
 This project demonstrates the workflow outlined above, providing the ability to execute each step on any Linux/OS X machine running a Docker client with access to a Docker host.  This workflow can also be automated within a CI system such as Jenkins, triggered by a commit to the source code repository for the application.
 
 ## Quick Start
-
-Full documentation is provided at <a href="http://pypackage-docker.readthedocs.org">read the docs</a>.  
 
 The following provides an example to enable you to get started, and assumes you are using the included sample application located in the `src` folder.
 
@@ -174,7 +174,9 @@ Successfully built afb89cb5e94f
 
 ### Running the Release Image
 
-With release application artefacts and runtime images built, they can be published (future enhancement to this project).  At this point, a continuous deployment workflow can be triggered (e.g. based upon a webhook configured on the release Docker image being published to a Docker Registry).
+With release application artefacts and runtime images built, at this point it is possible to establish a sandbox environment with the application release using tools like docker-compose.  With the sandbox environment in place, automated functional/integration tests can be executed as a final gate before publishing the release application artefact and runtime image.  With the various artefacts published, your continuous deployment processes can be triggered to release the application into the appropriate target environments.
+
+> Estalishing a sandbox environment and running functional tests for the sample application will be added in a future version of this project
 
 You can also run arbitrary commands against the created release image, which can be useful.  The following commands can be used for this:
 
@@ -195,7 +197,7 @@ PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
 ```
 
 ```bash
-# Run migrations
+# Run Django migrations
 $ make manage migrate
 docker run -it --rm -p 8000:8000 mycompany/myapp:latest manage.py migrate
 Operations to perform:
@@ -221,8 +223,8 @@ Running migrations:
 ```
 
 ```bash
-# Run collectstatic
- make -- manage collectstatic --noinput
+# Run Django collectstatic
+$ make -- manage collectstatic --noinput
 docker run -it --rm -p 8000:8000 mycompany/myapp:latest manage.py collectstatic --noinput
 Copying '/appenv/local/lib/python2.7/site-packages/django/contrib/admin/static/admin/css/base.css'
 Copying '/appenv/local/lib/python2.7/site-packages/django/contrib/admin/static/admin/css/rtl.css'
@@ -232,10 +234,11 @@ Copying '/appenv/local/lib/python2.7/site-packages/django/contrib/admin/static/a
 
 > Use the `--` separate after the `make` command to allow any subsequent arguments to be passed to the `docker run` command, rather than being interpreted by the `make` command as arguments
 
-> Current there are some limitations related to how make works that restrict colons and possibly other special characters being used.
+> Currently there are some limitations related to how make works that restrict colons and possibly other special characters being used.
 
 ## TODO:
 
 - Add support to publish Python Wheels and Docker Images
-- Add docker-compose.yml example
-- Add CI integration example
+- Add sandbox environment (using docker-compose) and functional tests example
+- Add CI system example (e.g. using Jenkins or GoCD)
+- Add CD workflow 
