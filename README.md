@@ -7,11 +7,15 @@ Full documentation is provided at <a href="http://pypackage-docker.readthedocs.o
 The goals of this methodology include:
 
 - Portable workflow - you should be able to run this workflow locally on a developer machine or on a CI system like Jenkins.
+- Include a Python virtual environment
 - Create deployable **native** application artefacts (i.e. Python Wheels, not archives or operating system packages).
 - Create deployable runtime environment artefacts (i.e. Docker images). 
+- Create simple to maintain manifests that describe application and runtime environment dependencies.
 - Eliminate development and test dependencies from production runtime environment artefacts.
 - Fast developer feedback - accelerate testing and build activities through Python Wheels caching.
 - Ease of use - reduce complexity of running long Docker commands to simple `make` style commands.
+- Reusability - use Docker image layering to build dependency and configuration trees that promote reusability
+- Leverage familiar Python tooling - use of `pip` and `virtualenv` means this it is possible to extract this workflow outside of Docker
 
 ## Workflow
 
@@ -39,7 +43,7 @@ This project demonstrates the workflow outlined above, providing the ability to 
 
 ## Quick Start
 
-The following provides an example to enable you to get started, and assumes you are using the included sample application located in the `src` folder.
+The following provides an example to enable you to get started, and assumes you are using the included sample application located in the `src` folder.  For further information on how to prepare your application for this workflow, refer to the <a href="http://pypackage-docker.readthedocs.org/en/latest/application_requirements.html" target="_blank">documentation</a>.
 
 ### Prerequisites
 
@@ -63,8 +67,7 @@ PORTS ?= 8000:8000
 ...
 ```
 
-
-Create the base image using the `make image docker/base` command:
+Create the base image using the `make image docker/base` command.  The base image should include any common dependencies/configuration settings to both development/test images and production images.  The base image includes an entrypoint script `entrypoint.sh` that activates the Python virtual environment and runs any command in the virtual environment.  This entrypoint is inherited by all child images, promoting reusability.
 
 ```bash
 $ make image docker/base
@@ -79,7 +82,9 @@ Successfully built 7d763df4a3b4
 make: `docker/base' is up to date.
 ```
 
-Create the builder image using the `make image docker/builder` command.  Note that you must ensure the FROM directive in `docker/builder/Dockerfile` references the correct base image and version (see Step 0 below):
+Create the builder image using the `make image docker/builder` command.  The builder image should include all dependencies 
+
+> You must ensure the `FROM` directive in `docker/builder/Dockerfile` references the correct base image and version (see Step 0 below):
 
 ```bash
 $ make image docker/builder
@@ -253,3 +258,12 @@ Copying '/appenv/local/lib/python2.7/site-packages/django/contrib/admin/static/a
 - Add sandbox environment (using docker-compose) and functional tests example
 - Add CI system example (e.g. using Jenkins or GoCD)
 - Add CD workflow 
+
+## Acknowledgements
+
+Inspiration and ideas for this project were drawn from the following sources:
+
+- https://glyph.twistedmatrix.com/2015/03/docker-deploy-double-dutch.html
+- http://marmelab.com/blog/2014/09/10/make-docker-command.html
+- http://www.itnotes.de/docker/development/tools/2014/08/31/speed-up-your-docker-workflow-with-a-makefile/
+
