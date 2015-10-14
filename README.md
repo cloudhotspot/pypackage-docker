@@ -7,7 +7,7 @@ Full documentation is provided at <a href="http://pypackage-docker.readthedocs.o
 The goals of this methodology include:
 
 - Portable workflow - you should be able to run this workflow locally on a developer machine or on a CI system like Jenkins.
-- Create a Python virtual environment (even when containers, <a href="https://hynek.me/articles/virtualenv-lives/" target="_blank">see why here</a>).
+- Create a Python virtual environment (even inside containers, <a href="https://hynek.me/articles/virtualenv-lives/" target="_blank">see why here</a>).
 - Create deployable **native** application artefacts (i.e. Python Wheels, not archives or operating system packages).
 - Create deployable runtime environment artefacts (i.e. Docker images). 
 - Create simple to maintain manifests that describe application and runtime environment dependencies.
@@ -15,7 +15,7 @@ The goals of this methodology include:
 - Fast developer feedback - accelerate testing and build activities through Python Wheels caching.
 - Ease of use - reduce complexity of running long Docker commands to simple `make` style commands.
 - Reusability - use Docker image layering to build dependency and configuration trees that promote reusability
-- Leverage familiar Python tooling - use of `pip` and `virtualenv` means this it is possible to extract this workflow outside of Docker
+- Leverage familiar Python tooling - use of `pip` and `virtualenv` makes it possible to extract this workflow outside of Docker
 
 ## Workflow
 
