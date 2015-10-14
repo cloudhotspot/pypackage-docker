@@ -7,7 +7,7 @@ Full documentation is provided at <a href="http://pypackage-docker.readthedocs.o
 The goals of this methodology include:
 
 - Portable workflow - you should be able to run this workflow locally on a developer machine or on a CI system like Jenkins.
-- Include a Python virtual environment
+- Create a Python virtual environment (even when containers, <a href="https://hynek.me/articles/virtualenv-lives/" target="_blank">see why here</a>).
 - Create deployable **native** application artefacts (i.e. Python Wheels, not archives or operating system packages).
 - Create deployable runtime environment artefacts (i.e. Docker images). 
 - Create simple to maintain manifests that describe application and runtime environment dependencies.
@@ -246,11 +246,11 @@ Copying '/appenv/local/lib/python2.7/site-packages/django/contrib/admin/static/a
 63 static files copied to '/var/www/mysite/static'.
 ```
 
-> Use the `--` separate after the `make` command to allow any subsequent arguments to be passed to the `docker run` command, rather than being interpreted by the `make` command as arguments
+> Use the `--` separator after the `make` command to allow any subsequent arguments to be passed to the `docker run` command, rather than being interpreted by the `make` command as arguments.
 
-> Currently there are some limitations related to how make works that restrict colons and possibly other special characters being used.
+> Currently there are some limitations related to how make works that restrict colons and possibly other special characters being used in the command string passed to `make run` and `make manage`.
 
-## TODO:
+## TODO
 
 - Add best practices for Django settings and how to apply different environment settings
 - Add automatic versioning
@@ -266,4 +266,5 @@ Inspiration and ideas for this project were drawn from the following sources:
 - https://glyph.twistedmatrix.com/2015/03/docker-deploy-double-dutch.html
 - http://marmelab.com/blog/2014/09/10/make-docker-command.html
 - http://www.itnotes.de/docker/development/tools/2014/08/31/speed-up-your-docker-workflow-with-a-makefile/
+- https://hynek.me/articles/virtualenv-lives/
 
