@@ -3,7 +3,7 @@ REPO_VERSION ?= latest
 IMAGE_NAME ?= myapp
 PORTS ?= 8000:8000
 
-.PHONY: image build release run manage clean test
+.PHONY: image build release run manage clean test probe
 
 # Extract make image arguments and image context
 ifeq (image,$(firstword $(MAKECMDGOALS)))
@@ -102,3 +102,6 @@ test:
 	@if docker inspect $(REPO_NS)-$(IMAGE_NAME)-cache > /dev/null 2>&1; \
   then docker run -it --rm --volumes-from $(REPO_NS)-$(IMAGE_NAME)-cache -v "$$(pwd)"/src:/application $(REPO_NS)/$(IMAGE_NAME)-test:$(REPO_VERSION) $(TEST_ARGS); \
 	else docker run -it -v /cache --name $(REPO_NS)-$(IMAGE_NAME)-cache -v "$$(pwd)"/src:/application $(REPO_NS)/$(IMAGE_NAME)-test:$(REPO_VERSION) $(TEST_ARGS); fi
+
+probe:
+	docker-compose -f test.yml run --rm probe
