@@ -9,8 +9,6 @@ app:
     - cache
   volumes:
     - ./src:/application
-  ports:
-    - 8000:8000
 
 cache:
   extends:
