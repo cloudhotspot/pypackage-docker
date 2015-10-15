@@ -1,9 +1,5 @@
 app:
-  image: cloudhotspot/sampledjangoapp
-  links:
-    - db
-  ports:
-    - 8000:8000
+  image: mycompany/myapp:latest
 
 db:
   image: mysql
@@ -16,6 +12,9 @@ db:
     MYSQL_USER: dbuser
     MYSQL_PASSWORD: password
 
-test:
-  image: ubuntu:trusty
-  command: ping 8.8.8.8
+cache:
+  image: mycompany/myapp-test:latest
+  container_name: mycompany_myapp_cache
+  volumes:
+    - cache
+  entrypoint: "true"
