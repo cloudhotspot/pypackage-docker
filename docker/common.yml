@@ -16,5 +16,5 @@ cache:
   image: mycompany/myapp-test:latest
   container_name: mycompany_myapp_cache
   volumes:
-    - cache
+    - /tmp/mycompany_myapp_cache:/cache
   entrypoint: "true"

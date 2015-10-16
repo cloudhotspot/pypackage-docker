@@ -8,9 +8,7 @@ app:
   volumes_from:
     - cache
   volumes:
-    - ./src:/application
-  ports:
-    - 8000:8000
+    - ../src:/application
 
 cache:
   extends:
@@ -22,10 +20,10 @@ db:
     file: common.yml
     service: db
 
-probe:
-  image: mycompany/myapp-probe:latest
+agent:
+  image: mycompany/myapp-agent:latest
   links:
     - db
   volumes:
-    - ./ansible/probe:/ansible
+    - ../ansible/agent:/ansible
   command: site.yml --extra-vars="probe_host=db probe_port=3306"
