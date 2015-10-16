@@ -33,5 +33,6 @@ builder:
   image: mycompany/myapp-builder:latest
   volumes:
     - ../src:/application
+    - ../target:/wheelhouse
   volumes_from:
     - cache
