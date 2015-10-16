@@ -103,5 +103,5 @@ test:
   then docker run -it --rm --volumes-from $(REPO_NS)-$(IMAGE_NAME)-cache -v "$$(pwd)"/src:/application $(REPO_NS)/$(IMAGE_NAME)-test:$(REPO_VERSION) $(TEST_ARGS); \
 	else docker run -it -v /cache --name $(REPO_NS)-$(IMAGE_NAME)-cache -v "$$(pwd)"/src:/application $(REPO_NS)/$(IMAGE_NAME)-test:$(REPO_VERSION) $(TEST_ARGS); fi
 
-probe:
-	docker-compose -f test.yml run --rm probe
+agent:
+	docker-compose -f docker/test.yml run --rm agent
