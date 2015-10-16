@@ -10,20 +10,28 @@ app:
   volumes:
     - ../src:/application
 
-cache:
-  extends:
-    file: common.yml
-    service: cache
-
 db:
   extends:
     file: common.yml
     service: db
 
+cache:
+  image: mycompany/myapp-test:latest
+  container_name: mycompany_myapp_cache
+  volumes:
+    - /tmp/mycompany_myapp_cache:/cache
+  entrypoint: "true"
+
 agent:
-  image: mycompany/myapp-agent:latest
+  extends:
+    file: common.yml
+    service: agent
   links:
     - db
+
+builder:
+  image: mycompany/myapp-builder:latest
   volumes:
-    - ../ansible/agent:/ansible
-  command: site.yml --extra-vars="probe_host=db probe_port=3306"
+    - ../src:/application
+  volumes_from:
+    - cache

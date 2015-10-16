@@ -12,9 +12,8 @@ db:
     MYSQL_USER: dbuser
     MYSQL_PASSWORD: password
 
-cache:
-  image: mycompany/myapp-test:latest
-  container_name: mycompany_myapp_cache
+agent:
+  image: mycompany/myapp-agent:latest
   volumes:
-    - /tmp/mycompany_myapp_cache:/cache
-  entrypoint: "true"
+    - ../ansible/agent:/ansible
+  command: site.yml --extra-vars="probe_host=db probe_port=3306"
