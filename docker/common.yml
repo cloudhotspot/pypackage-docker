@@ -1,5 +1,14 @@
 app:
-  image: mycompany/myapp:latest
+  image: mycompany/myapp-release:latest
+  extra_hosts:
+    bob: 8.8.8.8
+  environment:
+    DJANGO_SETTINGS_MODULE: mysite.settings.base
+    MYSQL_ROOT_PASSWORD: pass1234 
+    MYSQL_DATABASE: sampledjangoapp
+    MYSQL_USER: sampledjangoapp
+    MYSQL_PASSWORD: pass1234
+    MYSQL_HOST: db
 
 db:
   image: mysql
@@ -7,10 +16,10 @@ db:
   expose:
     - "3306"
   environment:
-    MYSQL_ROOT_PASSWORD: password 
-    MYSQL_DATABASE: app_db
-    MYSQL_USER: dbuser
-    MYSQL_PASSWORD: password
+    MYSQL_ROOT_PASSWORD: pass1234 
+    MYSQL_DATABASE: sampledjangoapp
+    MYSQL_USER: sampledjangoapp
+    MYSQL_PASSWORD: pass1234
 
 agent:
   image: mycompany/myapp-agent:latest
