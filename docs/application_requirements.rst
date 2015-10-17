@@ -48,7 +48,54 @@ A sample |setup_py| file is included in the PyPackage Docker repository::
   )
 
 
-The following discusses important settings in the ``setup.py`` file:
+The following table discusses important settings in the ``setup.py`` file:
+
+..  function:: divide
+  
+  good bye
+
+=====  =====
+col 1  col 2
+=====  =====
+1      Second column of row 1.
+2      Second column of row 2.
+       Second line of paragraph.
+3      - Second column of row 3.
+
+       - Second item in bullet
+         list (row 3, column 2).
+\      Row 4; column 1 will be empty.
+=====  =====
+
+.. topic:: Topic Title
+   :name: mytopic
+
+   Subsequent indented lines comprise
+   the body of the topic, and are
+   interpreted as *body elements*.
+
+
+.. list-table::
+   :widths: 15 35
+   :header-rows: 1
+
+   * - Setting
+     - Description
+   * - ``packages = find_packages()``
+     - Allows packages to be found dynamically.  
+       ----
+       Any folder that includes the file ``__init__.py`` will be considered 
+       a package.
+   * - Crunchy Frog
+     - 1.49
+   * - Gannet Ripple
+     - 1.99
+
+.. epigraph::
+
+   No matter where you go, there you are.
+
+   -- Buckaroo Banzai
 
 * ``packages = find_packages()`` - allows packages to be found dynamically.  Any folder that includes the file ``__init__.py`` will be considered a package.
 
@@ -91,12 +138,13 @@ The example |manifest_in| file included with the sample application ensures all 
 * ``polls/static``
 * ``templates``
 
-.. code-block:: python
+..  code-block:: python
+    :emphasize-lines: 4
 
-  # MANIFEST.in
-  recursive-include polls/templates *
-  recursive-include polls/static *
-  recursive-include templates *
+    # MANIFEST.in
+    recursive-include polls/templates *
+    recursive-include polls/static *
+    recursive-include templates *
 
 Application Packages
 --------------------
