@@ -5,7 +5,7 @@ MAINTAINER Justin Menga <justin.menga@cloudhotspot.co>
 
 RUN sed -i "s/http:\/\/archive./http:\/\/nz.archive./g" /etc/apt/sources.list && \
     apt-get update && \
-    apt-get install -qyy -o APT::Install-Recommends=false -o APT::Install-Suggests=false python-virtualenv python libffi6 openssl libpython2.7
+    apt-get install -qyy -o APT::Install-Recommends=false -o APT::Install-Suggests=false python-virtualenv python libffi6 openssl libpython2.7 python-mysqldb
 
 # Create virtual environment
 # Upgrade PIP in virtual environment

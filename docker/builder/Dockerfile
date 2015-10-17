@@ -2,7 +2,7 @@ FROM mycompany/myapp-base:latest
 MAINTAINER Justin Menga <justin.menga@cloudhotspot.co>
 
 # Install build dependencies
-RUN apt-get install -qy libffi-dev libssl-dev python-dev && \
+RUN apt-get install -qy libffi-dev libssl-dev python-dev libmysqlclient-dev && \
     . /appenv/bin/activate && \
     pip install wheel 
     
