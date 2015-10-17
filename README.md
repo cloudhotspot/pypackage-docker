@@ -13,7 +13,7 @@ The goals of this methodology include:
 - Create simple to maintain manifests that describe application and runtime environment dependencies.
 - Eliminate development and test dependencies from production runtime environment artefacts.
 - Fast developer feedback - accelerate testing and build activities through Python Wheels caching.
-- Ease of use - reduce complexity of running long Docker commands to simple `make` style commands.
+- Ease of use - reduce complexity of running long Docker commands and orchestrating workflows to simple `make` style commands.
 - Reusability - use Docker image layering to build dependency and configuration trees that promote reusability
 - Leverage familiar Python tooling - use of `pip` and `virtualenv` makes it possible to extract this workflow outside of Docker
 
@@ -41,31 +41,43 @@ The CI workflow (assuming all tests pass) is as follows:
 
 This project demonstrates the workflow outlined above, providing the ability to execute each step on any Linux/OS X machine running a Docker client with access to a Docker host.  This workflow can also be automated within a CI system such as Jenkins, triggered by a commit to the source code repository for the application.
 
-## Quick Start
+The rest of this document provides an example to enable you to get started, and assumes you are using the included sample application located in the `src` folder.  For further information on how to prepare your application for this workflow, refer to the <a href="http://pypackage-docker.readthedocs.org/en/latest/application_requirements.html" target="_blank">documentation</a>.
 
-The following provides an example to enable you to get started, and assumes you are using the included sample application located in the `src` folder.  For further information on how to prepare your application for this workflow, refer to the <a href="http://pypackage-docker.readthedocs.org/en/latest/application_requirements.html" target="_blank">documentation</a>.
-
-### Prerequisites
+## Prerequisites
 
 - Linux/OS X computer
-- Docker client (the workflow has been tested on Docker 1.8)
+- Docker client - the workflow has been tested on Docker 1.8
+- Docker Compose - the workflow has been tested on docker-compose 1.4.2
 - Docker daemon (either running locally, on local VM or on a remote host)
 - Docker daemon must have Internet connectivity
+- Docker Machine (Recommended) - if testing on locally OS X, Docker Machine along with your favourite virualisation software is recommended
 
-### Initial Setup
+## Initial Setup
 
-Configure your environment either by setting environment variables or by configuring the `Makefile`:
+First, you need to configure your environment either by setting environment variables or by configuring the top portion of the `Makefile`:
 
 ```bash 
 REPO_NS ?= mycompany
 REPO_VERSION ?= latest
 IMAGE_NAME ?= myapp
-PORTS ?= 8000:8000
 
 .PHONY: image build release run manage clean test
 ...
 ...
 ```
+These settings will determine how the various Docker images you create and use are named.
+
+Next you need to ensure the following images are created or available for your CI workflow:
+
+- Base image
+- Builder image
+- Test image
+
+> The order of building the above images is important and must be following top to bottom.  
+
+In addition to the above, this workflow introduces the concept of an **Agent** image, which is specific to the sample application but may be useful for your own workflows.
+
+### Creating the Base Image
 
 Create the base image using the `make image docker/base` command.  
 
@@ -75,15 +87,48 @@ The base image includes an entrypoint script `entrypoint.sh` that activates the 
 
 ```bash
 $ make image docker/base
-Sending build context to Docker daemon  7.95 MB
+=> Building Docker image mycompany/myapp-base:latest...
+Sending build context to Docker daemon 4.489 MB
 Step 0 : FROM ubuntu:trusty
- ---> 91e54dfb1179
- ...
- ...
-Removing intermediate container 3fb1b4fbbb97
-Successfully built 7d763df4a3b4
+ ---> a005e6b7dd01
+Step 1 : MAINTAINER Justin Menga <justin.menga@cloudhotspot.co>
+ ---> Running in 32f1743c9b29
+ ---> 161672d57fb4
+Removing intermediate container 32f1743c9b29
+Step 2 : RUN sed -i "s/http:\/\/archive./http:\/\/nz.archive./g" /etc/apt/sources.list &&     apt-get update &&     apt-get install -qyy -o APT::Install-Recommends=false -o APT::Install-Suggests=false python-virtualenv python libffi6 openssl libpython2.7 python-mysqldb
+ ---> Running in 73b330b7ea01
+...
+...
+Step 3 : RUN virtualenv /appenv &&     . /appenv/bin/activate &&     pip install pip==7.1.2
+ ---> Running in 8bb6b81eb600
+New python executable in /appenv/bin/python
+Installing setuptools, pip...done.
+Downloading/unpacking pip==7.1.2
+Installing collected packages: pip
+  Found existing installation: pip 1.5.4
+    Uninstalling pip:
+      Successfully uninstalled pip
+Successfully installed pip
+Cleaning up...
+ ---> 269c64f8032c
+Removing intermediate container 8bb6b81eb600
+Step 4 : ADD scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+ ---> 6f9432cbfbdd
+Removing intermediate container 0ac482760d6e
+Step 5 : RUN chmod +x /usr/local/bin/entrypoint.sh
+ ---> Running in b007759635ba
+ ---> 8b22b92fc5a9
+Removing intermediate container b007759635ba
+Step 6 : ENTRYPOINT entrypoint.sh
+ ---> Running in c768ff3cf1d8
+ ---> 0c5087e1533d
+Removing intermediate container c768ff3cf1d8
+Successfully built 0c5087e1533d
+=> Image complete
 make: `docker/base' is up to date.
 ```
+
+### Creating the Builder Image
 
 Create the builder image using the `make image docker/builder` command.  The builder image should include all dependencies required for development and build purposes.
 
@@ -91,13 +136,40 @@ Create the builder image using the `make image docker/builder` command.  The bui
 
 ```bash
 $ make image docker/builder
-Sending build context to Docker daemon 7.951 MB
+=> Building Docker image mycompany/myapp-builder:latest...
+Sending build context to Docker daemon  4.49 MB
 Step 0 : FROM mycompany/myapp-base:latest
- ---> 333bb56f3d69
+ ---> 0c5087e1533d
+Step 1 : MAINTAINER Justin Menga <justin.menga@cloudhotspot.co>
+ ---> Running in f13dfbd9b9aa
+ ---> b76137345d77
+Removing intermediate container f13dfbd9b9aa
+Step 2 : RUN apt-get install -qy libffi-dev libssl-dev python-dev libmysqlclient-dev &&     . /appenv/bin/activate &&     pip install wheel
+ ---> Running in 3bbd791ee3cc
 ...
 ...
-Removing intermediate container 3fb1b4fbbb97
-Successfully built 9599b05c1a22
+Step 3 : ENV WHEELHOUSE /wheelhouse PIP_WHEEL_DIR /wheelhouse PIP_FIND_LINKS /wheelhouse XDG_CACHE_HOME /cache
+ ---> Running in 2787c27adcf4
+ ---> 73a387a9ab98
+Removing intermediate container 2787c27adcf4
+Step 4 : VOLUME /wheelhouse
+ ---> Running in 142d7171c70c
+ ---> e5589b5a6339
+Removing intermediate container 142d7171c70c
+Step 5 : VOLUME /application
+ ---> Running in 0923b00dd803
+ ---> c5e9f04e5ad2
+Removing intermediate container 0923b00dd803
+Step 6 : WORKDIR /application
+ ---> Running in cc671e27723a
+ ---> dcbd0d9acf0a
+Removing intermediate container cc671e27723a
+Step 7 : CMD pip wheel .
+ ---> Running in bd76e2da381b
+ ---> 02e733c48dcd
+Removing intermediate container bd76e2da381b
+Successfully built 02e733c48dcd
+=> Image complete
 make: `docker/builder' is up to date.
 ```
 
@@ -105,33 +177,70 @@ Create the test image using the `make image docker/test` command.  The test imag
 
 ```bash
 $ make image docker/test
-Sending build context to Docker daemon 1.581 MB
+=> Building Docker image mycompany/myapp-test:latest...
+Sending build context to Docker daemon 4.491 MB
 Step 0 : FROM mycompany/myapp-builder
- ---> ef81e12cb16b
+ ---> 02e733c48dcd
 Step 1 : MAINTAINER Justin Menga <justin.menga@cloudhotspot.co>
- ---> Running in 84781ffee27e
- ---> 326b2fcede26
-Removing intermediate container 84781ffee27e
-Step 2 : ADD test.sh /usr/local/bin/test.sh
- ---> 05e2a72e60ec
-Removing intermediate container 61b24fdefef2
+ ---> Running in 78c61c63517a
+ ---> f09bb690d2dd
+Removing intermediate container 78c61c63517a
+Step 2 : ADD scripts/test.sh /usr/local/bin/test.sh
+ ---> 0ae8dcde4e6a
+Removing intermediate container 76bce404d127
 Step 3 : RUN chmod +x /usr/local/bin/test.sh
- ---> Running in d79c90cabb06
- ---> cad5f490062d
-Removing intermediate container d79c90cabb06
+ ---> Running in 97238cfa4343
+ ---> e571e9f00678
+Removing intermediate container 97238cfa4343
 Step 4 : ENTRYPOINT test.sh
- ---> Running in f8a2a99bab08
- ---> 40bbbafae1fc
-Removing intermediate container f8a2a99bab08
+ ---> Running in 4cd10823b079
+ ---> 3cc6233f617d
+Removing intermediate container 4cd10823b079
 Step 5 : CMD python manage.py test
- ---> Running in 8f6ee2acfb47
- ---> cc965753e601
-Removing intermediate container 8f6ee2acfb47
-Successfully built cc965753e601
+ ---> Running in 9d0dce419773
+ ---> 4b1bfe32fa02
+Removing intermediate container 9d0dce419773
+Successfully built 4b1bfe32fa02
+=> Image complete
 make: `docker/test' is up to date.
 ```
+### Creating the Agent Image (Optional)
 
-### Continuous Integration Workflow
+The agent image is specific to the sample application included in this workflow.  The agent container runs an Ansible playbook (defined in `ansible/agent/site.yml`) that is used to allow the MySQL database container time to properly start up when bringing up the environments used in the workflow.  Of course you are free to take whatever approach you like to achieve this goal, this approach is just one of many possible solutions to this problem.
+
+Create the agent image using the `make image docker/agent` command.  This image has Ansible installed and `ansible-playbook` defined as its entrypoint.  By supplying the agent container with a playbook file and appropriate command string referencing the file, this image provides an easy mechanism to invoke an arbitrary Ansible playbook within the test or release environments in this workflow:
+
+```bash
+$ make image docker/agent
+=> Building Docker image mycompany/myapp-agent:latest...
+Sending build context to Docker daemon 4.492 MB
+Step 0 : FROM ubuntu:trusty
+ ---> a005e6b7dd01
+Step 1 : MAINTAINER Justin Menga <justin.menga@cloudhotspot.co>
+ ---> Using cache
+ ---> 161672d57fb4
+Step 2 : RUN sed -i "s/http:\/\/archive./http:\/\/nz.archive./g" /etc/apt/sources.list &&     apt-get update -qy &&     apt-get install -qy software-properties-common &&     apt-add-repository -y ppa:ansible/ansible &&     apt-get update -qy &&     apt-get install -qy ansible
+ ---> Running in 879fa3c9923f
+...
+...
+Step 3 : VOLUME /ansible
+ ---> Running in 4548ca97e3b0
+ ---> c5423b6ca790
+Removing intermediate container 4548ca97e3b0
+Step 4 : WORKDIR /ansible
+ ---> Running in 81ebf5b96c2f
+ ---> 67e7dde7c4c5
+Removing intermediate container 81ebf5b96c2f
+Step 5 : ENTRYPOINT ansible-playbook
+ ---> Running in dfb2d85663ca
+ ---> 68bb8a312b7b
+Removing intermediate container dfb2d85663ca
+Successfully built 68bb8a312b7b
+=> Image complete
+make: `docker/agent' is up to date.
+```
+
+## Continuous Integration Workflow
 
 With the application, environment and base/builder/test images in place, the normal continuous integration workflow can be executed.  This workflow would typically be invoked on each application source code commit in a production continuous integration system.  
 
