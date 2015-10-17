@@ -6,6 +6,10 @@ Introduction
 PyPackage Docker is a tool set for packaging Python and Django applications using Docker and Wheels.
 
 
+Workflow
+--------
+
+|workflow|
 
 Methodology
 -----------
@@ -46,3 +50,7 @@ Acknowledgements
 ----------------
 
 The following articles contributed to the were key 
+
+
+
+.. |workflow| image:: images/ci-workflow.png
