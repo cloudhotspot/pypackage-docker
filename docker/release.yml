@@ -6,6 +6,7 @@ app:
     - db
   ports:
     - 8000:8000
+  command: uwsgi --http :8000 --module mysite.wsgi
 
 db:
   extends:
