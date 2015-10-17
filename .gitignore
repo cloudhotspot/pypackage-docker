@@ -3,3 +3,4 @@ env_make
 target
 *.whl
 *.pyc
+docs/_*
