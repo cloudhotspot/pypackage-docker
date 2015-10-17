@@ -1,10 +1,22 @@
-include env_make
 REPO_NS ?= mycompany
 REPO_VERSION ?= latest
 IMAGE_NAME ?= myapp
-PORTS ?= 8000:8000
 
-.PHONY: image build release run manage clean test agent all env_make start stop
+.PHONY: image build release run manage clean test agent all start stop bootstrap
+
+# Helpers
+GIT_BRANCH = "git rev-parse --abbrev-ref HEAD"
+COMMIT_COUNT = "git rev-list HEAD --count"
+
+# Cosmetices
+YELLOW = "\033[1;33m"
+NC = "\033[0m"
+
+# Shell Functions
+INFO=sh -c '\
+  printf $(YELLOW); \
+  echo "=> $$1"; \
+  printf $(NC)' INFO
 
 # Extract make image arguments and image context
 ifeq (image,$(firstword $(MAKECMDGOALS)))
@@ -15,16 +27,17 @@ ifeq (image,$(firstword $(MAKECMDGOALS)))
     ifndef IMAGE_PATH
 			IMAGE_PATH := .
     endif
-    ifneq (release,$(notdir $(IMAGE_FILE_PATH)))
-      IMAGE_CONTEXT := -$(notdir $(IMAGE_FILE_PATH))
-    endif
+    # ifneq (release,$(notdir $(IMAGE_FILE_PATH)))
+    IMAGE_CONTEXT := $(notdir $(IMAGE_FILE_PATH))
+    # else 
+    	# IMAGE_CONTEXT := $(GIT_CONTEXT)
+    # endif
   else
   	IMAGE_FILE_PATH := .
   	IMAGE_PATH := .
   endif
   $(eval $(IMAGE_FILE_PATH):;@:)
   $(eval $(IMAGE_PATH):;@:)
-  $(eval $(IMAGE_CONTEXT):;@:)
  endif
 
 # Extract run arguments
@@ -60,62 +73,75 @@ ifeq (build,$(firstword $(MAKECMDGOALS)))
   $(eval $(BUILD_CMD):;@:)
 endif
 
-# Extract and format environment variable string, ports, volumes
-ifdef ENV_VARS
-  EMPTY :=
-	SPACE := $(EMPTY) $(EMPTY)
-	ENV_VARS_STRING = -e $(subst $(SPACE), -e ,$(ENV_VARS))
-endif
+# Expansion
+# GIT_CONTEXT := $$(eval $(GIT_BRANCH))
+FQ_IMAGE_NAME := $(REPO_NS)/$(IMAGE_NAME)-$(IMAGE_CONTEXT):$(REPO_VERSION)
 
-ifdef PORTS
-	EMPTY :=
-	SPACE := $(EMPTY) $(EMPTY)
-	PORTS_STRING = -p $(subst $(SPACE), -p ,$(PORTS))
-endif
-
-ifdef VOLUMES
-	EMPTY :=
-	SPACE := $(EMPTY) $(EMPTY)
-	VOLUMES_STRING = -v $(subst $(SPACE), -v ,$(VOLUMES))
-endif
 
 image:
-	docker build -t $(REPO_NS)/$(IMAGE_NAME)$(IMAGE_CONTEXT):$(REPO_VERSION) -f $(IMAGE_FILE_PATH)/Dockerfile $(IMAGE_PATH)
-
+	@${INFO} "Building Docker image $(FQ_IMAGE_NAME)..."
+	@docker build -t $(FQ_IMAGE_NAME) -f $(IMAGE_FILE_PATH)/Dockerfile $(IMAGE_PATH)
+	@${INFO} "Image complete"
 build:
-	docker-compose -p test -f docker/test.yml run --rm builder
-	
+	@${INFO} "Building Python wheels..."
+	@docker-compose -p test -f docker/test.yml run --rm builder
+	@${INFO} "Build complete"
+
 release:
 	@make image docker/release
 
+bootstrap:
+	@${INFO} "Bootstraping release environment..."
+	@${INFO} "Ensuring database is ready..."
+	@docker-compose -p release -f docker/release.yml run --rm agent
+	@${INFO} "Running migrations..."
+	@make manage migrate
+	@${INFO} "Creating Django admin user..."
+	@make manage createsuperuser
+	@${INFO} "Collecting static assets..."
+	@make -- manage collectstatic --noinput
+	@${INFO} "Bootstrap complete"
+
 run:
+	@${INFO} "Running command $(RUN_ARGS)..."
 	docker-compose -p release -f docker/release.yml run --rm --service-ports app $(RUN_ARGS)
 
 start:
-	docker-compose -p release -f docker/release.yml up -d
+	@${INFO} "Starting release environment..."
+	@docker-compose -p release -f docker/release.yml up -d
+	@${INFO} "Release environment started"
 
 stop:
-	docker-compose -p release -f docker/release.yml stop
+	@${INFO} "Stopping release environment..."
+	@docker-compose -p release -f docker/release.yml stop
+	@${INFO} "Release environment stopped"
 
 manage:
-	docker-compose -p release -f docker/release.yml run --rm --service-ports app manage.py $(MANAGE_ARGS)
+	@${INFO} "Running python manage.py $(MANAGE_ARGS)..."
+	@docker-compose -p release -f docker/release.yml run --rm --service-ports app manage.py $(MANAGE_ARGS)
 	
 clean:
-	docker-compose -p test -f docker/test.yml kill
-	docker-compose -p test -f docker/test.yml rm -f
-	docker-compose -p release -f docker/release.yml kill
-	docker-compose -p release -f docker/release.yml rm -f
-	rm -rf target
+	@${INFO} "Cleaning test environment..."
+	@docker-compose -p test -f docker/test.yml kill
+	@docker-compose -p test -f docker/test.yml rm -f
+	@${INFO} "Cleaning release environment..."
+	@docker-compose -p release -f docker/release.yml kill
+	@docker-compose -p release -f docker/release.yml rm -f
+	@${INFO} "Cleaning target folder..."
+	@rm -rf target
+	@${INFO} "Clean complete"
 
 test: 
-	docker-compose -p test -f docker/test.yml run --rm agent
-	docker-compose -p test -f docker/test.yml run --rm app
-	
-agent:
-	docker-compose -f docker/test.yml run --rm agent
+	@${INFO} "Ensuring database is ready..."
+	@docker-compose -p test -f docker/test.yml run --rm agent
+	@${INFO} "Running tests..."
+	@docker-compose -p test -f docker/test.yml run --rm app
+	@${INFO} "Testing complete"
 
 all:
 	@make clean
 	@make test
 	@make build
 	@make release
+	@make bootstrap
+	@make start
