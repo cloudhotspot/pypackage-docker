@@ -2,13 +2,15 @@ app:
   extends:
     file: common.yml
     service: app
-  image: mycompany/myapp-test:latest
+  image: "mycompany/myapp-test:latest"
   links:
     - db
   volumes_from:
     - cache
   volumes:
     - ../src:/application
+  environment:
+    DJANGO_SETTINGS_MODULE: mysite.settings.test
 
 db:
   extends:
@@ -17,7 +19,6 @@ db:
 
 cache:
   image: mycompany/myapp-test:latest
-  container_name: mycompany_myapp_cache
   volumes:
     - /tmp/mycompany_myapp_cache:/cache
   entrypoint: "true"
