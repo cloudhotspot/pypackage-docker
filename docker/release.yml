@@ -6,12 +6,22 @@ app:
     - db
   ports:
     - 8000:8000
-  command: uwsgi --http :8000 --module mysite.wsgi
+  volumes_from:
+    - static
+  command: uwsgi --http :8000 --module mysite.wsgi --static-map /static=/var/www/mysite/static
+  environment:
+    DJANGO_SETTINGS_MODULE: mysite.settings.test
 
 db:
   extends:
     file: common.yml
     service: db
+
+static:
+  image: mycompany/myapp-release:latest
+  volumes:
+    - /var/www/mysite/
+  entrypoint: "true"
 
 agent:
   extends:
