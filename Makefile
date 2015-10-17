@@ -1,9 +1,10 @@
+include env_make
 REPO_NS ?= mycompany
 REPO_VERSION ?= latest
 IMAGE_NAME ?= myapp
 PORTS ?= 8000:8000
 
-.PHONY: image build release run manage clean test probe
+.PHONY: image build release run manage clean test agent all env_make start stop
 
 # Extract make image arguments and image context
 ifeq (image,$(firstword $(MAKECMDGOALS)))
@@ -79,43 +80,42 @@ ifdef VOLUMES
 endif
 
 image:
-	@docker build -t $(REPO_NS)/$(IMAGE_NAME)$(IMAGE_CONTEXT):$(REPO_VERSION) -f $(IMAGE_FILE_PATH)/Dockerfile $(IMAGE_PATH)
+	docker build -t $(REPO_NS)/$(IMAGE_NAME)$(IMAGE_CONTEXT):$(REPO_VERSION) -f $(IMAGE_FILE_PATH)/Dockerfile $(IMAGE_PATH)
 
 build:
-	@docker-compose -p test -f docker/test.yml run --rm builder
-	#@if docker inspect $(REPO_NS)-$(IMAGE_NAME)-cache > /dev/null 2>&1; \
-	#then docker run --rm $(PORTS_STRING) $(ENV_VARS_STRING) $(VOLUMES_STRING) -v "$$(pwd)"/src:/application -v "$$(pwd)"/target:/wheelhouse --volumes-from $(REPO_NS)-$(IMAGE_NAME)-cache $(REPO_NS)/$(IMAGE_NAME)-builder:$(REPO_VERSION) $(BUILD_CMD); \
-	#else docker run --rm $(PORTS_STRING) $(ENV_VARS_STRING) $(VOLUMES_STRING) -v "$$(pwd)"/src:/application -v "$$(pwd)"/target:/wheelhouse $(REPO_NS)/$(IMAGE_NAME)-builder:$(REPO_VERSION) $(BUILD_CMD); fi
-
-#@docker build -t $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) .
+	docker-compose -p test -f docker/test.yml run --rm builder
+	
 release:
-	make image docker/release
+	@make image docker/release
 
-#@docker run -it --rm $(PORTS_STRING) $(ENV_VARS_STRING) $(VOLUMES_STRING) $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) $(RUN_ARGS)
 run:
-	@docker-compose -p release -f docker/release.yml run app $(RUN_ARGS)
+	docker-compose -p release -f docker/release.yml run --rm --service-ports app $(RUN_ARGS)
 
-#@docker run -it --rm $(PORTS_STRING) $(ENV_VARS_STRING) $(VOLUMES_STRING) $(REPO_NS)/$(IMAGE_NAME):$(REPO_VERSION) manage.py $(MANAGE_ARGS)
+start:
+	docker-compose -p release -f docker/release.yml up -d
+
+stop:
+	docker-compose -p release -f docker/release.yml stop
+
 manage:
-	@docker-compose -p release -f docker/release.yml run app manage.py $(MANAGE_ARGS)
+	docker-compose -p release -f docker/release.yml run --rm --service-ports app manage.py $(MANAGE_ARGS)
 	
-
-#@docker rm $(REPO_NS)-$(IMAGE_NAME)-cache > /dev/null 2>&1 || true
-#@docker rmi $(REPO_NS)-$(IMAGE_NAME)-cache > /dev/null 2>&1 || true
 clean:
-	@rm -rf target
-	@docker-compose -p test -f docker/test.yml kill
-	@docker-compose -p test -f docker/test.yml rm -f
-	@docker-compose -p release -f docker/release.yml kill
-	@docker-compose -p release -f docker/release.yml rm -f
+	docker-compose -p test -f docker/test.yml kill
+	docker-compose -p test -f docker/test.yml rm -f
+	docker-compose -p release -f docker/release.yml kill
+	docker-compose -p release -f docker/release.yml rm -f
+	rm -rf target
 
-#@if docker inspect $(REPO_NS)-$(IMAGE_NAME)-cache > /dev/null 2>&1; \
-#then docker run -it --rm --volumes-from $(REPO_NS)-$(IMAGE_NAME)-cache -v "$$(pwd)"/src:/application $(REPO_NS)/$(IMAGE_NAME)-test:$(REPO_VERSION) $(TEST_ARGS); \
-#else docker run -it -v /cache --name $(REPO_NS)-$(IMAGE_NAME)-cache -v "$$(pwd)"/src:/application $(REPO_NS)/$(IMAGE_NAME)-test:$(REPO_VERSION) $(TEST_ARGS); fi
 test: 
-	@docker-compose -p test -f docker/test.yml run --rm agent
-	@docker-compose -p test -f docker/test.yml run --rm app
+	docker-compose -p test -f docker/test.yml run --rm agent
+	docker-compose -p test -f docker/test.yml run --rm app
 	
-
 agent:
 	docker-compose -f docker/test.yml run --rm agent
+
+all:
+	@make clean
+	@make test
+	@make build
+	@make release
