@@ -87,7 +87,8 @@ FQ_IMAGE_NAME = $(REPO_NS)/$(IMAGE_NAME)-$(IMAGE_CONTEXT)
 image:
 	@${INFO} "Building Docker image $(FQ_IMAGE_NAME):$(GIT_TAG)..."
 	@docker build -t $(FQ_IMAGE_NAME):$(GIT_TAG) -f $(IMAGE_FILE_PATH)/Dockerfile $(IMAGE_PATH)
-	docker tag -f $(FQ_IMAGE_NAME):$(GIT_TAG) $(FQ_IMAGE_NAME):latest
+	@${INFO} "Tagging image as $(REPO_VERSION)..."
+	@docker tag -f $(FQ_IMAGE_NAME):$(GIT_TAG) $(FQ_IMAGE_NAME):$(REPO_VERSION)
 	@${INFO} "Removing dangling images..."
 	@if [ -n "$$(docker images -f "dangling=true" -q)" ]; then docker rmi $$(docker images -f "dangling=true" -q); fi
 	@${INFO} "Image complete"
@@ -98,8 +99,8 @@ build:
 	@${INFO} "Build complete"
 
 release:
-	$(MAKE) image docker/release
-	$(foreach tag,$(RELEASE_ARGS), docker tag -f $(REPO_NS)/$(IMAGE_NAME)-release:$(GIT_TAG) $(REPO_NS)/$(IMAGE_NAME)-release:$(tag);)
+	@make image docker/release
+	@$(foreach tag,$(RELEASE_ARGS), docker tag -f $(REPO_NS)/$(IMAGE_NAME)-release:$(GIT_TAG) $(REPO_NS)/$(IMAGE_NAME)-release:$(tag);)
 
 bootstrap:
 	@${INFO} "Bootstraping release environment..."
@@ -115,7 +116,7 @@ bootstrap:
 
 run:
 	@${INFO} "Running command $(RUN_ARGS)..."
-	docker-compose -p $(RELEASE_ENV_NAME) -f docker/release.yml run --rm --service-ports app $(RUN_ARGS)
+	@docker-compose -p $(RELEASE_ENV_NAME) -f docker/release.yml run --rm --service-ports app $(RUN_ARGS)
 
 start:
 	@${INFO} "Starting release environment..."
