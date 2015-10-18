@@ -1,12 +1,17 @@
 REPO_NS ?= mycompany
 REPO_VERSION ?= latest
 IMAGE_NAME ?= myapp
+TEST_ENV_NAME ?= $(REPO_NS)$(IMAGE_NAME)test
+RELEASE_ENV_NAME ?= $(REPO_NS)$(IMAGE_NAME)release
 
 .PHONY: image build release run manage clean test agent all start stop bootstrap
 
 # Helpers
-GIT_BRANCH = "git rev-parse --abbrev-ref HEAD"
-COMMIT_COUNT = "git rev-list HEAD --count"
+GIT_BRANCH = git rev-parse --abbrev-ref HEAD
+GIT_SHORT_SHA = git rev-parse --short HEAD
+COMMIT_COUNT = git rev-list HEAD --count
+# GIT_CONTEXT := $$($(GIT_BRANCH))
+GIT_TAG := $$($(GIT_SHORT_SHA))
 
 # Cosmetices
 YELLOW = "\033[1;33m"
@@ -27,14 +32,11 @@ ifeq (image,$(firstword $(MAKECMDGOALS)))
     ifndef IMAGE_PATH
 			IMAGE_PATH := .
     endif
-    # ifneq (release,$(notdir $(IMAGE_FILE_PATH)))
     IMAGE_CONTEXT := $(notdir $(IMAGE_FILE_PATH))
-    # else 
-    	# IMAGE_CONTEXT := $(GIT_CONTEXT)
-    # endif
   else
   	IMAGE_FILE_PATH := .
   	IMAGE_PATH := .
+  	IMAGE_CONTEXT := "release"
   endif
   $(eval $(IMAGE_FILE_PATH):;@:)
   $(eval $(IMAGE_PATH):;@:)
@@ -73,18 +75,20 @@ ifeq (build,$(firstword $(MAKECMDGOALS)))
   $(eval $(BUILD_CMD):;@:)
 endif
 
-# Expansion
-# GIT_CONTEXT := $$(eval $(GIT_BRANCH))
-FQ_IMAGE_NAME := $(REPO_NS)/$(IMAGE_NAME)-$(IMAGE_CONTEXT):$(REPO_VERSION)
-
+# Expansion variables
+FQ_IMAGE_NAME := "$(REPO_NS)/$(IMAGE_NAME)-$(IMAGE_CONTEXT)"
 
 image:
-	@${INFO} "Building Docker image $(FQ_IMAGE_NAME)..."
-	@docker build -t $(FQ_IMAGE_NAME) -f $(IMAGE_FILE_PATH)/Dockerfile $(IMAGE_PATH)
+	@${INFO} "Building Docker image $(FQ_IMAGE_NAME):$(GIT_TAG)..."
+	@docker build -t $(FQ_IMAGE_NAME):$(GIT_TAG) -f $(IMAGE_FILE_PATH)/Dockerfile $(IMAGE_PATH)
+	@docker tag -f $(FQ_IMAGE_NAME):$(GIT_TAG) $(FQ_IMAGE_NAME):latest
+	@${INFO} "Removing dangling images..."
+	@if [ -n "$$(docker images -f "dangling=true" -q)" ]; then docker rmi $$(docker images -f "dangling=true" -q); fi
 	@${INFO} "Image complete"
+
 build:
 	@${INFO} "Building Python wheels..."
-	@docker-compose -p test -f docker/test.yml run --rm builder
+	@docker-compose -p $(TEST_ENV_NAME) -f docker/test.yml run --rm builder
 	@${INFO} "Build complete"
 
 release:
@@ -93,7 +97,7 @@ release:
 bootstrap:
 	@${INFO} "Bootstraping release environment..."
 	@${INFO} "Ensuring database is ready..."
-	@docker-compose -p release -f docker/release.yml run --rm agent
+	@docker-compose -p $(RELEASE_ENV_NAME) -f docker/release.yml run --rm agent
 	@${INFO} "Running migrations..."
 	@make manage migrate
 	@${INFO} "Creating Django admin user..."
@@ -104,38 +108,40 @@ bootstrap:
 
 run:
 	@${INFO} "Running command $(RUN_ARGS)..."
-	docker-compose -p release -f docker/release.yml run --rm --service-ports app $(RUN_ARGS)
+	docker-compose -p $(RELEASE_ENV_NAME) -f docker/release.yml run --rm --service-ports app $(RUN_ARGS)
 
 start:
 	@${INFO} "Starting release environment..."
-	@docker-compose -p release -f docker/release.yml up -d
+	@docker-compose -p $(RELEASE_ENV_NAME) -f docker/release.yml up -d
 	@${INFO} "Release environment started"
 
 stop:
 	@${INFO} "Stopping release environment..."
-	@docker-compose -p release -f docker/release.yml stop
+	@docker-compose -p $(RELEASE_ENV_NAME) -f docker/release.yml stop
 	@${INFO} "Release environment stopped"
 
 manage:
 	@${INFO} "Running python manage.py $(MANAGE_ARGS)..."
-	@docker-compose -p release -f docker/release.yml run --rm --service-ports app manage.py $(MANAGE_ARGS)
+	@docker-compose -p $(RELEASE_ENV_NAME) -f docker/release.yml run --rm --service-ports app manage.py $(MANAGE_ARGS)
 	
 clean:
 	@${INFO} "Cleaning test environment..."
-	@docker-compose -p test -f docker/test.yml kill
-	@docker-compose -p test -f docker/test.yml rm -f
+	@docker-compose -p $(TEST_ENV_NAME) -f docker/test.yml kill
+	@docker-compose -p $(TEST_ENV_NAME) -f docker/test.yml rm -f -v
 	@${INFO} "Cleaning release environment..."
-	@docker-compose -p release -f docker/release.yml kill
-	@docker-compose -p release -f docker/release.yml rm -f
+	@docker-compose -p $(RELEASE_ENV_NAME) -f docker/release.yml kill
+	@docker-compose -p $(RELEASE_ENV_NAME) -f docker/release.yml rm -f -v
+	@${INFO} "Cleaning dangling images..."
+	@if [ -n "$$(docker images -f "dangling=true" -q)" ]; then docker rmi $$(docker images -f "dangling=true" -q); fi
 	@${INFO} "Cleaning target folder..."
 	@rm -rf target
 	@${INFO} "Clean complete"
 
 test: 
 	@${INFO} "Ensuring database is ready..."
-	@docker-compose -p test -f docker/test.yml run --rm agent
+	@docker-compose -p $(TEST_ENV_NAME) -f docker/test.yml run --rm agent
 	@${INFO} "Running tests..."
-	@docker-compose -p test -f docker/test.yml run --rm app
+	@docker-compose -p $(TEST_ENV_NAME) -f docker/test.yml run --rm app
 	@${INFO} "Testing complete"
 
 all:
