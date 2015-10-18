@@ -55,20 +55,45 @@ The rest of this document provides an example to enable you to get started, and 
 
 ## Initial Setup
 
+### Makefile Environment Settings
+
 First, you need to configure your environment either by setting environment variables or by configuring the top portion of the `Makefile`:
 
 ```bash 
 REPO_NS ?= mycompany
 REPO_VERSION ?= latest
 IMAGE_NAME ?= myapp
+TEST_ENV_NAME ?= $(REPO_NS)$(IMAGE_NAME)test
+RELEASE_ENV_NAME ?= $(REPO_NS)$(IMAGE_NAME)release
 
-.PHONY: image build release run manage clean test
 ...
 ...
 ```
-These settings will determine how the various Docker images you create and use are named.
+These settings will determine how the various Docker images and containers that created and used are named.  In general, you only need to modify:
 
-Next you need to ensure the following images are created or available for your CI workflow:
+- REPO_NS
+- IMAGE_NAME
+
+### Docker Compose Environment Settings
+
+Docker Compose is used to define the following environments for this workflow:
+
+- Test Environment - this is used for the <a href="https://raw.githubusercontent.com/cloudhotspot/pypackage-docker/master/docs/images/ci-workflow.png" target="_blank">unit/integration test and build phases</a>
+- Release Environment - this is used for the <a href="https://raw.githubusercontent.com/cloudhotspot/pypackage-docker/master/docs/images/ci-workflow.png" target="_blank">functional test and release phases</a>
+
+A set of docker compose files are including in the `docker` folder of this repository:
+
+- `common.yml` - defines services and settings common to both the test and release environments
+- `test.yml` - defines services and settings for the test environment
+- `release.yml` - defines services and settings for the release environment
+
+These files are specifically configured for the sample application and must be adapted for your application.
+
+For further information on how to configure the Docker Compose environment settings, refer to the documentation.
+
+### Docker Images
+
+The CI workfow requires the following images to be created or available for your CI workflow:
 
 - Base image
 - Builder image
@@ -76,7 +101,7 @@ Next you need to ensure the following images are created or available for your C
 
 > The order of building the above images is important and must be followed from top to bottom.  
 
-In addition to the above, this workflow introduces the concept of a **helper** image, which provides additional functionality specific to the sample application but may be useful for your own workflows.
+In addition to the above, the workflow introduces the concept of a **helper** image, which provides additional functionality specific to the sample application but may be useful for your own workflows.
 
 ### Creating the Base Image
 
@@ -88,7 +113,7 @@ The base image includes an entrypoint script `entrypoint.sh` that activates the 
 
 ```bash
 $ make image docker/base
-=> Building Docker image mycompany/myapp-base:latest...
+=> Building Docker image mycompany/myapp-base:56ffcba...
 Sending build context to Docker daemon 4.489 MB
 Step 0 : FROM ubuntu:trusty
  ---> a005e6b7dd01
@@ -125,6 +150,7 @@ Step 6 : ENTRYPOINT entrypoint.sh
  ---> 0c5087e1533d
 Removing intermediate container c768ff3cf1d8
 Successfully built 0c5087e1533d
+=> Removing dangling images...
 => Image complete
 make: `docker/base' is up to date.
 ```
@@ -137,7 +163,7 @@ Create the builder image using the `make image docker/builder` command.  The bui
 
 ```bash
 $ make image docker/builder
-=> Building Docker image mycompany/myapp-builder:latest...
+=> Building Docker image mycompany/myapp-builder:56ffcba...
 Sending build context to Docker daemon  4.49 MB
 Step 0 : FROM mycompany/myapp-base:latest
  ---> 0c5087e1533d
@@ -170,6 +196,7 @@ Step 7 : CMD pip wheel .
  ---> 02e733c48dcd
 Removing intermediate container bd76e2da381b
 Successfully built 02e733c48dcd
+=> Removing dangling images...
 => Image complete
 make: `docker/builder' is up to date.
 ```
@@ -178,7 +205,7 @@ Create the test image using the `make image docker/test` command.  The test imag
 
 ```bash
 $ make image docker/test
-=> Building Docker image mycompany/myapp-test:latest...
+=> Building Docker image mycompany/myapp-test:56ffcba...
 Sending build context to Docker daemon 4.491 MB
 Step 0 : FROM mycompany/myapp-builder
  ---> 02e733c48dcd
@@ -202,6 +229,7 @@ Step 5 : CMD python manage.py test
  ---> 4b1bfe32fa02
 Removing intermediate container 9d0dce419773
 Successfully built 4b1bfe32fa02
+=> Removing dangling images...
 => Image complete
 make: `docker/test' is up to date.
 ```
@@ -215,7 +243,7 @@ This image has Ansible installed and `ansible-playbook` defined as its entrypoin
 
 ```bash
 $ make image docker/agent
-=> Building Docker image mycompany/myapp-agent:latest...
+=> Building Docker image mycompany/myapp-agent:56ffcba...
 Sending build context to Docker daemon 4.492 MB
 Step 0 : FROM ubuntu:trusty
  ---> a005e6b7dd01
@@ -239,6 +267,7 @@ Step 5 : ENTRYPOINT ansible-playbook
  ---> 68bb8a312b7b
 Removing intermediate container dfb2d85663ca
 Successfully built 68bb8a312b7b
+=> Removing dangling images...
 => Image complete
 make: `docker/agent' is up to date.
 ```
@@ -249,46 +278,47 @@ With the application, environment and base/builder/test images in place, the con
 
 However it is possible to complete the steps described below manually on a development machine as required.
 
+> The `make all` command provides a quick way to clean the environments, execute the workflow and then bootstrap and activate the release environment.
+
 On each commit, the continuous integration workflow starts by running tests inside the test container using the `make test` command.  
 
 This will install the application and run `python manage.py test` in a container based upon the test image:
 
-> The Makefile automatically creates a volume container that stores the pip cache.  This allows subsequent invocations of `make test` and `make build` to use cached dependencies for much faster execution times (see example below where the first run of `make test` takes 39 seconds, whilst the second run takes just under 6 seconds).  The `make clean` command removes application build artefacts and the pip cache volume container.
+> The Docker Compose environments include a volume container that stores the pip cache on the Docker host in `/tmp/`.  This allows subsequent invocations of `make test` and `make build` to use cached dependencies for much faster execution times (see example below where the first run of `make test` takes 36 seconds, whilst the second run takes just under 9 seconds). 
 
 ```bash
 $ time make test
+=> Ensuring database is ready...
+Creating mycompanymyapptest_db_1...
+...
+...
+=> Running tests...
+Creating mycompanymyapptest_cache_1...
 Processing /application
-Collecting Django>=1.8.5 (from SampleDjangoApp==0.1)
-Downloading Django-1.8.5-py2.py3-none-any.whl (6.2MB)
-    100% |################################| 6.2MB 112kB/s
-Collecting uwsgi>=2.0 (from SampleDjangoApp==0.1)
-Downloading uwsgi-2.0.11.2.tar.gz (782kB)
-    100% |################################| 782kB 742kB/s
-...
-...
 ...
 ...
 Creating test database for alias 'default'...
 ..........
 ----------------------------------------------------------------------
-Ran 10 tests in 0.045s
+Ran 10 tests in 0.066s
 
 OK
 Destroying test database for alias 'default'...
+=> Testing complete
 
-real  0m39.394s
-user  0m0.315s
-sys 0m0.066s
+real  0m36.645s
+user  0m0.674s
+sys 0m0.201s
 
 $ time make test
+=> Ensuring database is ready...
+...
+=> Running tests...
 Processing /application
 Collecting Django>=1.8.5 (from SampleDjangoApp==0.1)
   Using cached Django-1.8.5-py2.py3-none-any.whl
-Collecting uwsgi>=2.0 (from SampleDjangoApp==0.1)
-Collecting coverage (from SampleDjangoApp==0.1)
-Installing collected packages: Django, uwsgi, coverage, SampleDjangoApp
-  Running setup.py install for SampleDjangoApp
-Successfully installed Django-1.8.5 SampleDjangoApp-0.1 coverage-4.0.1 uwsgi-2.0.11.2
+...
+...
 Creating test database for alias 'default'...
 ..........
 ----------------------------------------------------------------------
@@ -297,70 +327,78 @@ Ran 10 tests in 0.044s
 OK
 Destroying test database for alias 'default'...
 
-real  0m5.740s
-user  0m0.286s
-sys 0m0.019s
+real  0m7.826s
+user  0m0.476s
+sys 0m0.130s
 ```
 
-After testing is successful, application artefacts are built using the `make build` command.  This will output a Python Wheel for the application and each dependency in the `wheelhouse` folder:
+After testing is successful, application artefacts are built using the `make build` command.  This will output a Python Wheel for the application and each dependency in the `/wheelhouse` folder on the container, which is mapped to the `target` folder on the Docker host (this mapping can be changed in the Docker Compose environment settings):
 
 ```bash
 $ make build
+=> Building Python wheels...
 Processing /application
 Collecting Django>=1.8.5 (from SampleDjangoApp==0.1)
   Using cached Django-1.8.5-py2.py3-none-any.whl
   Saved /wheelhouse/Django-1.8.5-py2.py3-none-any.whl
 Collecting uwsgi>=2.0 (from SampleDjangoApp==0.1)
   Saved /wheelhouse/uWSGI-2.0.11.2-py2-none-any.whl
+Collecting mysql-python (from SampleDjangoApp==0.1)
+  Saved /wheelhouse/MySQL_python-1.2.5-cp27-none-linux_x86_64.whl
 Skipping Django, due to already being wheel.
 Skipping uwsgi, due to already being wheel.
+Skipping mysql-python, due to already being wheel.
 Building wheels for collected packages: SampleDjangoApp
   Running setup.py bdist_wheel for SampleDjangoApp
   Stored in directory: /wheelhouse
 Successfully built SampleDjangoApp
+=> Build complete
 ```
 
 With application artefacts built, the final step is to create a release image using the `make release` command.  
 
-This will create an image based from the base image, ensuring development and test dependencies are not included in production releases:
+This will create an image based from the base image, ensuring development and test dependencies are not included in production releases.  The release image is tagged with the current Git commit short SHA hash and also tagged with the value of the REPO_VERSION environment variable (set to latest by default). 
 
 ```bash
 $ make release
-docker build -t mycompany/myapp:latest .
-Sending build context to Docker daemon 7.776 MB
+=> Building Docker image mycompany/myapp-release:56ffcba...
+Sending build context to Docker daemon 15.33 MB
 Step 0 : FROM mycompany/myapp-base
- ---> 333bb56f3d69
+ ---> 56380f292315
 Step 1 : MAINTAINER Justin Menga <justin.menga@cloudhotspot.co>
  ---> Using cache
- ---> 28ddfe42068f
+ ---> 8f3898ac6d14
 Step 2 : ENV PORT 8000 PROJECT_NAME SampleDjangoApp
  ---> Using cache
- ---> b8c9c94396f8
-Step 3 : ADD wheelhouse /wheelhouse
- ---> fe49bee27a1e
-Removing intermediate container 3459a4478d82
+ ---> 55a5b15e6955
+Step 3 : ADD target /wheelhouse
+ ---> Using cache
+ ---> b2860b70ef41
 Step 4 : RUN . /appenv/bin/activate &&     pip install --no-index -f wheelhouse ${PROJECT_NAME} &&     rm -rf /wheelhouse
- ---> Running in 35e96329cb9a
-Ignoring indexes: https://pypi.python.org/simple
-Collecting SampleDjangoApp
-Collecting uwsgi>=2.0 (from SampleDjangoApp)
-Collecting Django>=1.8.5 (from SampleDjangoApp)
-Installing collected packages: uwsgi, Django, SampleDjangoApp
-Successfully installed Django-1.8.5 SampleDjangoApp-0.1 uwsgi-2.0.11.2
- ---> 50ab4766770b
-Removing intermediate container 35e96329cb9a
+ ---> Using cache
+ ---> d5f51f7a5be5
 Step 5 : EXPOSE ${PORT}
- ---> Running in f2fb97a491d0
- ---> afb89cb5e94f
-Removing intermediate container f2fb97a491d0
-Successfully built afb89cb5e94f
+ ---> Using cache
+ ---> 424d2ba7bb37
+Successfully built 424d2ba7bb37
+=> Tagging image as latest...
+=> Removing dangling images...
+=> Image complete
+make[1]: `docker/release' is up to date.
 ```
 
-### Running the Release Image
+### Running the Release Environment
 
 With release application artefacts and runtime images built, at this point it is possible to establish a sandbox environment with the application release using tools like docker-compose.  With the sandbox environment in place, automated functional/integration tests can be executed as a final gate before publishing the release application artefact and runtime image.  With the various artefacts published, your continuous deployment processes can be triggered to release the application into the appropriate target environments.
 
-> Estalishing a sandbox environment and running functional tests for the sample application will be added in a future version of this project
+This project includes a `make bootstrap` command that performs the following tasks specific to the sample application:
+
+- Bring up release environment database and ensure it is ready
+- Runs Django migrations
+- Creates Django admin super user
+- Collects Django static files
+
+With the release environment bootstrapped, you can run `make start` which will start the release environment in a ready to run state.  Similarly you can use `make stop` to stop the release environment without destroying it.
 
 You can also run arbitrary commands against the created release image, which can be useful.  The following commands can be used for this:
 
@@ -368,6 +406,71 @@ You can also run arbitrary commands against the created release image, which can
 - `make manage <django admin cmd>` - creates a container from the release image, runs a Django admin command and destroys the container
 
 Examples:
+
+```bash
+$ make bootstrap
+=> Bootstraping release environment...
+=> Ensuring database is ready...
+Creating mycompanymyapprelease_db_1...
+...
+...
+TASK: [Message] ***************************************************************
+ok: [localhost] => {
+    "msg": "Probing db:3306 with delay=0s and timeout=180s"
+}
+
+TASK: [Waiting for host to respond...] ****************************************
+ok: [localhost -> 127.0.0.1]
+...
+...
+=> Running migrations...
+=> Running python manage.py migrate...
+Creating mycompanymyapprelease_static_1...
+Operations to perform:
+  Synchronize unmigrated apps: staticfiles, messages
+  Apply all migrations: admin, contenttypes, polls, auth, sessions
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+  Installing custom SQL...
+Running migrations:
+  Rendering model states... DONE
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying polls.0001_initial... OK
+  Applying sessions.0001_initial... OK
+=> Creating Django admin user...
+=> Running python manage.py createsuperuser...
+Username (leave blank to use 'root'): admin
+Email address: admin@example.com
+Password: ********
+Password (again): ********
+Superuser created successfully.
+=> Collecting static assets...
+=> Running python manage.py collectstatic --noinput...
+Copying '/appenv/local/lib/python2.7/site-packages/django/contrib/admin/static/admin/js/urlify.js'
+Copying '/appenv/local/lib/python2.7/site-packages/django/contrib/admin/static/admin/js/SelectBox.js'
+...
+...
+
+63 static files copied to '/var/www/mysite/static'.
+=> Bootstrap complete
+
+$ make start
+=> Starting release environment...
+mycompanymyapprelease_db_1 is up-to-date
+Starting mycompanymyapprelease_static_1...
+Creating mycompanymyapprelease_app_1...
+Creating mycompanymyapprelease_agent_1...
+=> Release environment started
+```
 
 ```bash
 # Get an interactive prompt
@@ -422,10 +525,9 @@ Copying '/appenv/local/lib/python2.7/site-packages/django/contrib/admin/static/a
 
 ## TODO
 
-- Add best practices for Django settings and how to apply different environment settings
 - Add automatic versioning
 - Add support to publish Python Wheels and Docker Images
-- Add sandbox environment (using docker-compose) and functional tests example
+- Add functional tests example
 - Add CI system example (e.g. using Jenkins or GoCD)
 - Add CD workflow 
 - Add support for Git branching (awaiting Docker Compose 1.5 variable substitution features)
