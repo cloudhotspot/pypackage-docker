@@ -26,6 +26,7 @@ The initial setup to get started is as follows:
 - Create base image
 - Create builder image
 - Create test image
+- Create helper images (optional)
 
 With the above in place, the CI workflow can take place.  The CI workflow is triggered on each source code commit and thus benefits the most from automation and performance optimisations.
 
@@ -75,7 +76,7 @@ Next you need to ensure the following images are created or available for your C
 
 > The order of building the above images is important and must be followed from top to bottom.  
 
-In addition to the above, this workflow introduces the concept of an **Agent** image, which is specific to the sample application but may be useful for your own workflows.
+In addition to the above, this workflow introduces the concept of a **helper** image, which provides additional functionality specific to the sample application but may be useful for your own workflows.
 
 ### Creating the Base Image
 
@@ -204,9 +205,9 @@ Successfully built 4b1bfe32fa02
 => Image complete
 make: `docker/test' is up to date.
 ```
-### Creating the Agent Image (Optional)
+### Creating the Helper Image (Optional)
 
-The agent image is specific to the sample application included in this workflow.  The agent container runs an Ansible playbook (defined in `ansible/agent/site.yml`) that is used to allow the MySQL database container time to properly start up when bringing up the environments used in the workflow.  Of course you are free to take whatever approach you like to achieve this goal, this approach is just one of many possible solutions to this problem.
+A helper image referred to as an *agent image* is included in this workflow but note that this is specific to the sample application.  The agent image runs an Ansible playbook (defined in `ansible/agent/site.yml`) that is used to allow the MySQL database container time to properly start up when bringing up the environments used in the workflow.  Of course you are free to take whatever approach you like to achieve this goal, this approach is just one of many possible solutions to this problem.
 
 Create the agent image using the `make image docker/agent` command.  
 
