@@ -60,6 +60,12 @@ ifeq (test,$(firstword $(MAKECMDGOALS)))
   $(eval $(TEST_ARGS):;@:)
 endif
 
+# Extract release arguments
+ifeq (release,$(firstword $(MAKECMDGOALS)))
+  RELEASE_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(RELEASE_ARGS):;@:)
+endif
+
 # Extract build arguments
 ifeq (build,$(firstword $(MAKECMDGOALS)))
   BUILD_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
@@ -76,12 +82,12 @@ ifeq (build,$(firstword $(MAKECMDGOALS)))
 endif
 
 # Expansion variables
-FQ_IMAGE_NAME := "$(REPO_NS)/$(IMAGE_NAME)-$(IMAGE_CONTEXT)"
+FQ_IMAGE_NAME = $(REPO_NS)/$(IMAGE_NAME)-$(IMAGE_CONTEXT)
 
 image:
 	@${INFO} "Building Docker image $(FQ_IMAGE_NAME):$(GIT_TAG)..."
 	@docker build -t $(FQ_IMAGE_NAME):$(GIT_TAG) -f $(IMAGE_FILE_PATH)/Dockerfile $(IMAGE_PATH)
-	@docker tag -f $(FQ_IMAGE_NAME):$(GIT_TAG) $(FQ_IMAGE_NAME):latest
+	docker tag -f $(FQ_IMAGE_NAME):$(GIT_TAG) $(FQ_IMAGE_NAME):latest
 	@${INFO} "Removing dangling images..."
 	@if [ -n "$$(docker images -f "dangling=true" -q)" ]; then docker rmi $$(docker images -f "dangling=true" -q); fi
 	@${INFO} "Image complete"
@@ -92,7 +98,8 @@ build:
 	@${INFO} "Build complete"
 
 release:
-	@make image docker/release
+	$(MAKE) image docker/release
+	$(foreach tag,$(RELEASE_ARGS), docker tag -f $(REPO_NS)/$(IMAGE_NAME)-release:$(GIT_TAG) $(REPO_NS)/$(IMAGE_NAME)-release:$(tag);)
 
 bootstrap:
 	@${INFO} "Bootstraping release environment..."
