@@ -73,7 +73,7 @@ Next you need to ensure the following images are created or available for your C
 - Builder image
 - Test image
 
-> The order of building the above images is important and must be following top to bottom.  
+> The order of building the above images is important and must be followed from top to bottom.  
 
 In addition to the above, this workflow introduces the concept of an **Agent** image, which is specific to the sample application but may be useful for your own workflows.
 
@@ -208,7 +208,9 @@ make: `docker/test' is up to date.
 
 The agent image is specific to the sample application included in this workflow.  The agent container runs an Ansible playbook (defined in `ansible/agent/site.yml`) that is used to allow the MySQL database container time to properly start up when bringing up the environments used in the workflow.  Of course you are free to take whatever approach you like to achieve this goal, this approach is just one of many possible solutions to this problem.
 
-Create the agent image using the `make image docker/agent` command.  This image has Ansible installed and `ansible-playbook` defined as its entrypoint.  By supplying the agent container with a playbook file and appropriate command string referencing the file, this image provides an easy mechanism to invoke an arbitrary Ansible playbook within the test or release environments in this workflow:
+Create the agent image using the `make image docker/agent` command.  
+
+This image has Ansible installed and `ansible-playbook` defined as its entrypoint.  By supplying the agent container with a playbook file and appropriate command string referencing the file, this image provides an easy mechanism to invoke an arbitrary Ansible playbook within the test or release environments in this workflow.
 
 ```bash
 $ make image docker/agent
@@ -242,7 +244,7 @@ make: `docker/agent' is up to date.
 
 ## Continuous Integration Workflow
 
-With the application, environment and base/builder/test images in place, the normal continuous integration workflow can be executed.  This workflow would typically be invoked on each application source code commit in a production continuous integration system.  
+With the application, environment and base/builder/test images in place, the continuous integration workflow can be executed.  This workflow would typically be invoked on each application source code commit in a production continuous integration system.  
 
 However it is possible to complete the steps described below manually on a development machine as required.
 
