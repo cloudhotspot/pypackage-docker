@@ -278,7 +278,7 @@ With the application, environment and base/builder/test images in place, the con
 
 However it is possible to complete the steps described below manually on a development machine as required.
 
-> The `make all` command provides a quick way to clean the environments, execute the workflow and then bootstrap and activate the release environment.
+> The `make all` command provides a one-shot command to clean the environments, execute the workflow and then bootstrap and activate the release environment.
 
 On each commit, the continuous integration workflow starts by running tests inside the test container using the `make test` command.  
 
