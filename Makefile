@@ -90,7 +90,7 @@ image:
 	@${INFO} "Tagging image as $(REPO_VERSION)..."
 	@docker tag -f $(FQ_APP_NAME):$(GIT_TAG) $(FQ_APP_NAME):$(REPO_VERSION)
 	@${INFO} "Removing dangling images..."
-	@if [ -n "$$(docker images -f "dangling=true" -q)" ]; then docker rmi $$(docker images -f "dangling=true" -q); fi
+	@docker images -q --filter "dangling=true" | xargs docker rmi
 	@${INFO} "Image complete"
 
 build:
@@ -140,7 +140,7 @@ clean:
 	@docker-compose -p $(RELEASE_ENV_NAME) -f docker/release.yml kill
 	@docker-compose -p $(RELEASE_ENV_NAME) -f docker/release.yml rm -f -v
 	@${INFO} "Cleaning dangling images..."
-	@if [ -n "$$(docker images -f "dangling=true" -q)" ]; then docker rmi $$(docker images -f "dangling=true" -q); fi
+	@docker images -q --filter "dangling=true" | xargs docker rmi
 	@${INFO} "Cleaning target folder..."
 	@rm -rf target
 	@${INFO} "Clean complete"
