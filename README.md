@@ -61,10 +61,10 @@ First, you need to configure your environment either by setting environment vari
 
 ```bash 
 REPO_NS ?= mycompany
+APP_NAME ?= myapp
 REPO_VERSION ?= latest
-IMAGE_NAME ?= myapp
-TEST_ENV_NAME ?= $(REPO_NS)$(IMAGE_NAME)test
-RELEASE_ENV_NAME ?= $(REPO_NS)$(IMAGE_NAME)release
+TEST_ENV_NAME ?= $(REPO_NS)$(APP_NAME)test
+RELEASE_ENV_NAME ?= $(REPO_NS)$(APP_NAME)release
 
 ...
 ...
@@ -72,7 +72,7 @@ RELEASE_ENV_NAME ?= $(REPO_NS)$(IMAGE_NAME)release
 These settings will determine how the various Docker images and containers that created and used are named.  In general, you only need to modify:
 
 - REPO_NS
-- IMAGE_NAME
+- APP_NAME
 
 ### Docker Compose Environment Settings
 

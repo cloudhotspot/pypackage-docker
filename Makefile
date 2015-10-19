@@ -1,8 +1,8 @@
 REPO_NS ?= mycompany
+APP_NAME ?= myapp
 REPO_VERSION ?= latest
-IMAGE_NAME ?= myapp
-TEST_ENV_NAME ?= $(REPO_NS)$(IMAGE_NAME)test
-RELEASE_ENV_NAME ?= $(REPO_NS)$(IMAGE_NAME)release
+TEST_ENV_NAME ?= $(REPO_NS)$(APP_NAME)test
+RELEASE_ENV_NAME ?= $(REPO_NS)$(APP_NAME)release
 
 .PHONY: image build release run manage clean test agent all start stop bootstrap
 
@@ -82,13 +82,13 @@ ifeq (build,$(firstword $(MAKECMDGOALS)))
 endif
 
 # Expansion variables
-FQ_IMAGE_NAME = $(REPO_NS)/$(IMAGE_NAME)-$(IMAGE_CONTEXT)
+FQ_APP_NAME = $(REPO_NS)/$(APP_NAME)-$(IMAGE_CONTEXT)
 
 image:
-	@${INFO} "Building Docker image $(FQ_IMAGE_NAME):$(GIT_TAG)..."
-	@docker build -t $(FQ_IMAGE_NAME):$(GIT_TAG) -f $(IMAGE_FILE_PATH)/Dockerfile $(IMAGE_PATH)
+	@${INFO} "Building Docker image $(FQ_APP_NAME):$(GIT_TAG)..."
+	@docker build -t $(FQ_APP_NAME):$(GIT_TAG) -f $(IMAGE_FILE_PATH)/Dockerfile $(IMAGE_PATH)
 	@${INFO} "Tagging image as $(REPO_VERSION)..."
-	@docker tag -f $(FQ_IMAGE_NAME):$(GIT_TAG) $(FQ_IMAGE_NAME):$(REPO_VERSION)
+	@docker tag -f $(FQ_APP_NAME):$(GIT_TAG) $(FQ_APP_NAME):$(REPO_VERSION)
 	@${INFO} "Removing dangling images..."
 	@if [ -n "$$(docker images -f "dangling=true" -q)" ]; then docker rmi $$(docker images -f "dangling=true" -q); fi
 	@${INFO} "Image complete"
@@ -100,7 +100,7 @@ build:
 
 release:
 	@make image docker/release
-	@$(foreach tag,$(RELEASE_ARGS), docker tag -f $(REPO_NS)/$(IMAGE_NAME)-release:$(GIT_TAG) $(REPO_NS)/$(IMAGE_NAME)-release:$(tag);)
+	@$(foreach tag,$(RELEASE_ARGS), docker tag -f $(REPO_NS)/$(APP_NAME)-release:$(GIT_TAG) $(REPO_NS)/$(APP_NAME)-release:$(tag);)
 
 bootstrap:
 	@${INFO} "Bootstraping release environment..."
