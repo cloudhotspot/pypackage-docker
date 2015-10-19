@@ -201,7 +201,7 @@ Successfully built 02e733c48dcd
 make: `docker/builder' is up to date.
 ```
 
-Create the test image using the `make image docker/test` command.  The test image should include any test dependencies and uses the `test.sh` entrypoint script, which activates the virtual environment, installs the application and then runs a command string (by default `python manage.py test`):
+You can create the test image using the `make image docker/test` command.  The test image should include any test dependencies and uses the `test.sh` entrypoint script, which activates the virtual environment, installs the application and then runs a command string (by default `python manage.py test`):
 
 ```bash
 $ make image docker/test
@@ -237,7 +237,7 @@ make: `docker/test' is up to date.
 
 A helper image referred to as an *agent image* is included in this workflow but note that this is specific to the sample application.  The agent image runs an Ansible playbook (defined in `ansible/agent/site.yml`) that is used to allow the MySQL database container time to properly start up when bringing up the environments used in the workflow.  Of course you are free to take whatever approach you like to achieve this goal, this approach is just one of many possible solutions to this problem.
 
-Create the agent image using the `make image docker/agent` command.  
+You can create the agent image using the `make image docker/agent` command.  
 
 This image has Ansible installed and `ansible-playbook` defined as its entrypoint.  By supplying the agent container with a playbook file and appropriate command string referencing the file, this image provides an easy mechanism to invoke an arbitrary Ansible playbook within the test or release environments in this workflow.
 
