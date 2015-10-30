@@ -8,7 +8,7 @@ app:
     - 8000:8000
   volumes_from:
     - static
-  command: uwsgi --http :8000 --module mysite.wsgi --static-map /static=/var/www/mysite/static
+  command: uwsgi --http :8000 --module mysite.wsgi --static-map /static=/var/www/mysite/static --master
   environment:
     DJANGO_SETTINGS_MODULE: mysite.settings.release
 
