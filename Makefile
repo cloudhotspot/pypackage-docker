@@ -14,7 +14,7 @@ image:
 	${INFO} "Tagging image as $(REPO_VERSION)..."
 	@ docker tag -f $(FQ_APP_NAME):$(GIT_TAG) $(FQ_APP_NAME):$(REPO_VERSION)
 	${INFO} "Removing dangling images..."
-	@ docker images -q --filter "dangling=true" | xargs docker rmi
+	@ docker images -q --filter "dangling=true" | xargs -I ARGS docker rmi ARGS
 	${INFO} "Image complete"
 
 build:
