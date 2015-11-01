@@ -74,7 +74,7 @@ clean:
 	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/base.yml -f docker/release.yml kill
 	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/base.yml -f docker/release.yml rm -f -v
 	${INFO} "Cleaning dangling images..."
-	@ docker images -q --filter "dangling=true" | xargs docker rmi
+	@ docker images -q --filter "dangling=true" | xargs -I ARGS docker rmi ARGS
 	${INFO} "Cleaning target folder..."
 	@ rm -rf target
 	${INFO} "Clean complete"
