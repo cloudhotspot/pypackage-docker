@@ -1,0 +1,74 @@
+<pipelines group="pypackage_docker">
+    <pipeline name="continuous_integration" template="continuous_integration">
+      <materials>
+        <git url="https://github.com/cloudhotspot/pypackage-docker.git" />
+      </materials>
+    </pipeline>
+  </pipelines>
+  <templates>
+    <pipeline name="continuous_integration">
+      <stage name="build_base_images">
+        <jobs>
+          <job name="make_images">
+            <tasks>
+              <exec command="make">
+                <arg>image</arg>
+                <arg>docker/base</arg>
+              </exec>
+              <exec command="make">
+                <arg>image</arg>
+                <arg>docker/dev</arg>
+                <runif status="passed" />
+              </exec>
+            </tasks>
+          </job>
+          <job name="make_agent_image">
+            <tasks>
+              <exec command="make">
+                <arg>image</arg>
+                <arg>docker/agent</arg>
+              </exec>
+            </tasks>
+          </job>
+        </jobs>
+      </stage>
+      <stage name="run_unit_integration_tests">
+        <jobs>
+          <job name="make_test">
+            <tasks>
+              <exec command="make">
+                <arg>test</arg>
+              </exec>
+            </tasks>
+            <artifacts>
+              <test src="src/xunittest.xml" />
+              <test src="src/coverage.xml" />
+              <test src="reports/*" />
+            </artifacts>
+          </job>
+        </jobs>
+      </stage>
+      <stage name="build_application_artefacts">
+        <jobs>
+          <job name="make_build">
+            <tasks>
+              <exec command="make">
+                <arg>build</arg>
+              </exec>
+            </tasks>
+          </job>
+        </jobs>
+      </stage>
+      <stage name="build_release_image">
+        <jobs>
+          <job name="make_release">
+            <tasks>
+              <exec command="make">
+                <arg>release</arg>
+              </exec>
+            </tasks>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+  </templates>
