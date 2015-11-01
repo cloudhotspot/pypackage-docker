@@ -1,0 +1,4 @@
+gocd:
+  box: cloudhotspot/gocd-server
+  memory: 1024
+  cpu: 2

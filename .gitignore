@@ -1,5 +1,6 @@
 env_make
 .idea
+.vagrant
 target
 *.whl
 *.pyc
