@@ -2,6 +2,8 @@ app:
   image: mycompany/myapp-release:latest
   extra_hosts:
     bob: 8.8.8.8
+  links:
+    - db
   environment:
     DJANGO_SETTINGS_MODULE: mysite.settings.base
     MYSQL_ROOT_PASSWORD: pass1234 
@@ -20,9 +22,3 @@ db:
     MYSQL_DATABASE: sampledjangoapp
     MYSQL_USER: sampledjangoapp
     MYSQL_PASSWORD: pass1234
-
-agent:
-  image: mycompany/myapp-agent:latest
-  volumes:
-    - ../ansible/agent:/ansible
-  command: site.yml --extra-vars="probe_host=db probe_port=3306"

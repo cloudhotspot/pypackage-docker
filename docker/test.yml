@@ -1,10 +1,5 @@
 app:
-  extends:
-    file: common.yml
-    service: app
   image: "mycompany/myapp-test:latest"
-  links:
-    - db
   volumes_from:
     - cache
   volumes:
@@ -14,11 +9,6 @@ app:
     MYSQL_USER: root
     MYSQL_PASSWORD: pass1234
 
-db:
-  extends:
-    file: common.yml
-    service: db
-
 cache:
   image: mycompany/myapp-test:latest
   volumes:
@@ -26,11 +16,12 @@ cache:
   entrypoint: "true"
 
 agent:
-  extends:
-    file: common.yml
-    service: agent
+  image: mycompany/myapp-agent:latest
   links:
     - db
+  volumes:
+    - ../ansible/agent:/ansible
+  command: site.yml --extra-vars="probe_host=db probe_port=3306"
 
 builder:
   image: mycompany/myapp-builder:latest

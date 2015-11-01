@@ -1,9 +1,4 @@
 app:
-  extends:
-    file: common.yml
-    service: app
-  links:
-    - db
   ports:
     - 8000:8000
   volumes_from:
@@ -12,11 +7,6 @@ app:
   environment:
     DJANGO_SETTINGS_MODULE: mysite.settings.release
 
-db:
-  extends:
-    file: common.yml
-    service: db
-
 static:
   image: mycompany/myapp-release:latest
   volumes:
@@ -24,8 +14,9 @@ static:
   entrypoint: "true"
 
 agent:
-  extends:
-    file: common.yml
-    service: agent
+  image: mycompany/myapp-agent:latest
   links:
     - db
+  volumes:
+    - ../ansible/agent:/ansible
+  command: site.yml --extra-vars="probe_host=db probe_port=3306"
