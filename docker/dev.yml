@@ -9,7 +9,6 @@ app:
     MYSQL_USER: root
     MYSQL_PASSWORD: pass1234
     NOSE_INCLUDE_EXE: 1
-  command: ["python", "manage.py", "test", "polls"]
 
 cache:
   image: mycompany/myapp-dev:latest
