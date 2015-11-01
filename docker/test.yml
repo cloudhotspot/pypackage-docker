@@ -1,5 +1,5 @@
 app:
-  image: "mycompany/myapp-test:latest"
+  image: "mycompany/myapp-dev:latest"
   volumes_from:
     - cache
   volumes:
@@ -10,7 +10,7 @@ app:
     MYSQL_PASSWORD: pass1234
 
 cache:
-  image: mycompany/myapp-test:latest
+  image: mycompany/myapp-dev:latest
   volumes:
     - /tmp/mycompany_myapp_cache:/cache
   entrypoint: "true"
@@ -24,9 +24,11 @@ agent:
   command: site.yml --extra-vars="probe_host=db probe_port=3306"
 
 builder:
-  image: mycompany/myapp-builder:latest
+  image: mycompany/myapp-dev:latest
   volumes:
     - ../src:/application
     - ../target:/wheelhouse
   volumes_from:
     - cache
+  entrypoint: "entrypoint.sh"
+  command: ["pip", "wheel", "."]
