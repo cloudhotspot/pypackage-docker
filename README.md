@@ -24,8 +24,7 @@ The initial setup to get started is as follows:
 - Prepare your application
 - Configure your environment
 - Create base image
-- Create builder image
-- Create test image
+- Create development image
 - Create helper images (optional)
 
 With the above in place, the CI workflow can take place.  The CI workflow is triggered on each source code commit and thus benefits the most from automation and performance optimisations.
@@ -96,8 +95,7 @@ For further information on how to configure the Docker Compose environment setti
 The CI workfow requires the following images to be created or available for your CI workflow:
 
 - Base image
-- Builder image
-- Test image
+- Development image
 
 > The order of building the above images is important and must be followed from top to bottom.  
 
@@ -155,84 +153,62 @@ Successfully built 0c5087e1533d
 make: `docker/base' is up to date.
 ```
 
-### Creating the Builder Image
+### Creating the Development Image
 
-Create the builder image using the `make image docker/builder` command.  The builder image should include all dependencies required for development and build purposes.
+Create the builder image using the `make image docker/builder` command.  The development image should include all dependencies required for development, test and build purposes.  This image adds the `test.sh` entrypoint script, which activates the virtual environment, installs the application and then runs a command string (by default `python manage.py test`):
 
 > You must ensure the `FROM` directive in `docker/builder/Dockerfile` references the correct base image and version (see Step 0 below):
 
 ```bash
-$ make image docker/builder
-=> Building Docker image mycompany/myapp-builder:56ffcba...
-Sending build context to Docker daemon  4.49 MB
+$ make image docker/dev
+make image docker/dev
+=> Building Docker image mycompany/myapp-dev:aa54358...
+Sending build context to Docker daemon 4.671 MB
 Step 0 : FROM mycompany/myapp-base:latest
- ---> 0c5087e1533d
+ ---> 189a212d6439
 Step 1 : MAINTAINER Justin Menga <justin.menga@cloudhotspot.co>
- ---> Running in f13dfbd9b9aa
- ---> b76137345d77
-Removing intermediate container f13dfbd9b9aa
-Step 2 : RUN apt-get install -qy libffi-dev libssl-dev python-dev libmysqlclient-dev &&     . /appenv/bin/activate &&     pip install wheel
- ---> Running in 3bbd791ee3cc
-...
-...
-Step 3 : ENV WHEELHOUSE /wheelhouse PIP_WHEEL_DIR /wheelhouse PIP_FIND_LINKS /wheelhouse XDG_CACHE_HOME /cache
- ---> Running in 2787c27adcf4
- ---> 73a387a9ab98
-Removing intermediate container 2787c27adcf4
-Step 4 : VOLUME /wheelhouse
- ---> Running in 142d7171c70c
- ---> e5589b5a6339
-Removing intermediate container 142d7171c70c
-Step 5 : VOLUME /application
- ---> Running in 0923b00dd803
- ---> c5e9f04e5ad2
-Removing intermediate container 0923b00dd803
-Step 6 : WORKDIR /application
- ---> Running in cc671e27723a
- ---> dcbd0d9acf0a
-Removing intermediate container cc671e27723a
-Step 7 : CMD pip wheel .
- ---> Running in bd76e2da381b
- ---> 02e733c48dcd
-Removing intermediate container bd76e2da381b
-Successfully built 02e733c48dcd
+ ---> Using cache
+ ---> 3f492367a6f6
+Step 2 : RUN apt-get install -qy libffi-dev libssl-dev python-dev libmysqlclient-dev
+ ---> Using cache
+ ---> dab75995db76
+Step 3 : RUN . /appenv/bin/activate &&     pip install wheel
+ ---> Using cache
+ ---> ef510aa5f82a
+Step 4 : ENV WHEELHOUSE /wheelhouse PIP_WHEEL_DIR /wheelhouse PIP_FIND_LINKS /wheelhouse XDG_CACHE_HOME /cache
+ ---> Using cache
+ ---> a44a5ef2f28e
+Step 5 : VOLUME /wheelhouse
+ ---> Using cache
+ ---> 1a7c3a24ac7a
+Step 6 : VOLUME /application
+ ---> Using cache
+ ---> 0a06eb715731
+Step 7 : WORKDIR /application
+ ---> Using cache
+ ---> 459a81d2b166
+Step 8 : ADD scripts/test.sh /usr/local/bin/test.sh
+ ---> Using cache
+ ---> 0e96be69b6b3
+Step 9 : RUN chmod +x /usr/local/bin/test.sh
+ ---> Using cache
+ ---> 9ececed81875
+Step 10 : ENTRYPOINT test.sh
+ ---> Running in 19ce60284ec2
+ ---> 69dd96b1b581
+Removing intermediate container 19ce60284ec2
+Step 11 : CMD python manage.py test
+ ---> Running in 545a1f427287
+ ---> f8b528d4dee5
+Removing intermediate container 545a1f427287
+Successfully built f8b528d4dee5
+=> Tagging image as latest...
 => Removing dangling images...
+Deleted: 40af76fef075247beef9fe513613e76575e4710db32fd2e5a6af713b0142773d
 => Image complete
-make: `docker/builder' is up to date.
+make: `docker/dev' is up to date.
 ```
 
-You can create the test image using the `make image docker/test` command.  The test image should include any test dependencies and uses the `test.sh` entrypoint script, which activates the virtual environment, installs the application and then runs a command string (by default `python manage.py test`):
-
-```bash
-$ make image docker/test
-=> Building Docker image mycompany/myapp-test:56ffcba...
-Sending build context to Docker daemon 4.491 MB
-Step 0 : FROM mycompany/myapp-builder
- ---> 02e733c48dcd
-Step 1 : MAINTAINER Justin Menga <justin.menga@cloudhotspot.co>
- ---> Running in 78c61c63517a
- ---> f09bb690d2dd
-Removing intermediate container 78c61c63517a
-Step 2 : ADD scripts/test.sh /usr/local/bin/test.sh
- ---> 0ae8dcde4e6a
-Removing intermediate container 76bce404d127
-Step 3 : RUN chmod +x /usr/local/bin/test.sh
- ---> Running in 97238cfa4343
- ---> e571e9f00678
-Removing intermediate container 97238cfa4343
-Step 4 : ENTRYPOINT test.sh
- ---> Running in 4cd10823b079
- ---> 3cc6233f617d
-Removing intermediate container 4cd10823b079
-Step 5 : CMD python manage.py test
- ---> Running in 9d0dce419773
- ---> 4b1bfe32fa02
-Removing intermediate container 9d0dce419773
-Successfully built 4b1bfe32fa02
-=> Removing dangling images...
-=> Image complete
-make: `docker/test' is up to date.
-```
 ### Creating the Helper Image (Optional)
 
 A helper image referred to as an *agent image* is included in this workflow but note that this is specific to the sample application.  The agent image runs an Ansible playbook (defined in `ansible/agent/site.yml`) that is used to allow the MySQL database container time to properly start up when bringing up the environments used in the workflow.  Of course you are free to take whatever approach you like to achieve this goal, this approach is just one of many possible solutions to this problem.
@@ -332,7 +308,25 @@ user  0m0.476s
 sys 0m0.130s
 ```
 
-After testing is successful, application artefacts are built using the `make build` command.  This will output a Python Wheel for the application and each dependency in the `/wheelhouse` folder on the container, which is mapped to the `target` folder on the Docker host (this mapping can be changed in the Docker Compose environment settings):
+After testing is successful, application artefacts are built using the `make build` command.  This invokes a builder container defined in the `test.yml` Docker Compose file:
+
+```yaml
+...
+...
+builder:
+  image: mycompany/myapp-dev:latest
+  volumes:
+    - ../src:/application
+    - ../target:/wheelhouse
+  volumes_from:
+    - cache
+  entrypoint: "entrypoint.sh"
+  command: ["pip", "wheel", "."]
+```
+
+> Notice how the builder container overrides the default entrypoint and command string for the development image.  This illustrates the flexibility of Docker images.
+
+The build process will output a Python Wheel for the application and each dependency in the `/wheelhouse` folder on the container, which is mapped to the `target` folder on the Docker host (this mapping can be changed in the Docker Compose environment settings):
 
 ```bash
 $ make build
