@@ -77,13 +77,13 @@ These settings will determine how the various Docker images and containers that 
 
 Docker Compose is used to define the following environments for this workflow:
 
-- Test Environment - this is used for the <a href="https://raw.githubusercontent.com/cloudhotspot/pypackage-docker/master/docs/images/ci-workflow.png" target="_blank">unit/integration test and build phases</a>
+- Development/Test Environment - this is used for the <a href="https://raw.githubusercontent.com/cloudhotspot/pypackage-docker/master/docs/images/ci-workflow.png" target="_blank">unit/integration test and build phases</a>
 - Release Environment - this is used for the <a href="https://raw.githubusercontent.com/cloudhotspot/pypackage-docker/master/docs/images/ci-workflow.png" target="_blank">functional test and release phases</a>
 
 A set of docker compose files are including in the `docker` folder of this repository:
 
-- `common.yml` - defines services and settings common to both the test and release environments
-- `test.yml` - defines services and settings for the test environment
+- `base.yml` - defines services and settings common to both the test and release environments
+- `dev.yml` - defines services and settings for the development/test environment
 - `release.yml` - defines services and settings for the release environment
 
 These files are specifically configured for the sample application and must be adapted for your application.
@@ -308,7 +308,7 @@ user  0m0.476s
 sys 0m0.130s
 ```
 
-After testing is successful, application artefacts are built using the `make build` command.  This invokes a builder container defined in the `test.yml` Docker Compose file:
+After testing is successful, application artefacts are built using the `make build` command.  This invokes a builder container defined in the `dev.yml` Docker Compose file:
 
 ```yaml
 ...
