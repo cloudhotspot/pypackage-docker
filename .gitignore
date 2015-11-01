@@ -5,3 +5,6 @@ target
 *.whl
 *.pyc
 docs/_*
+src/.coverage
+src/coverage.xml
+src/xunittest.xml

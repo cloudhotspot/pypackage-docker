@@ -12,7 +12,10 @@ setup (
                             "uwsgi>=2.0",
                             "mysql-python"],
     extras_require       = {
-                              "test": ["coverage"],
+                              "test": [
+                                "coverage",
+                                "django-nose"
+                              ],
                            },
 )
 

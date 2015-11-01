@@ -1,6 +1,20 @@
 from base import *
 import os
 
+# Installed Apps
+INSTALLED_APPS += ('django_nose', )
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+NOSE_ARGS = [
+  '--with-coverage',  # activate coverage report
+  '--with-doctest',  # activate doctest: find and run docstests
+  '--verbosity=2',   # verbose output 
+  '--with-xunit',    # enable XUnit plugin
+  '--xunit-file=xunittest.xml',  # the XUnit report file
+  '--cover-xml',     # produle XML coverage info
+  '--cover-xml-file=coverage.xml',  # the coverage info file
+  '--cover-package=polls'
+]
+
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 DATABASES = {
