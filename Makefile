@@ -19,7 +19,7 @@ image:
 
 build:
 	${INFO} "Building Python wheels..."
-	@ docker-compose -p $(TEST_ENV_NAME) -f docker/common.yml -f docker/test.yml run --rm builder
+	@ docker-compose -p $(TEST_ENV_NAME) -f docker/base.yml -f docker/dev.yml run --rm builder
 	${INFO} "Build complete"
 
 release:
@@ -29,7 +29,7 @@ release:
 bootstrap:
 	${INFO} "Bootstraping release environment..."
 	${INFO} "Ensuring database is ready..."
-	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/common.yml -f docker/release.yml run --rm agent
+	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/base.yml -f docker/release.yml run --rm agent
 	${INFO} "Running migrations..."
 	@ make manage migrate
 	${INFO} "Creating Django admin user..."
@@ -40,39 +40,39 @@ bootstrap:
 
 run:
 	${INFO} "Running command $(RUN_ARGS)..."
-	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/common.yml -f docker/release.yml run --rm --service-ports app $(RUN_ARGS)
+	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/base.yml -f docker/release.yml run --rm --service-ports app $(RUN_ARGS)
 
 start:
 	${INFO} "Starting release environment..."
-	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/common.yml -f docker/release.yml up -d $(START_ARGS)
+	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/base.yml -f docker/release.yml up -d $(START_ARGS)
 	${INFO} "Release environment started"
 
 stop:
 	${INFO} "Stopping release environment..."
-	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/common.yml -f docker/release.yml stop $(STOP_ARGS)
+	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/base.yml -f docker/release.yml stop $(STOP_ARGS)
 	${INFO} "Release environment stopped"
 
 remove:
 	${INFO} "Killing and removing release environment..."
 	@ make stop
-	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/common.yml -f docker/release.yml rm -f -v
+	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/base.yml -f docker/release.yml rm -f -v
 	${INFO} "Release environment removed"
 
 manage:
 	${INFO} "Running python manage.py $(MANAGE_ARGS)..."
-	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/common.yml -f docker/release.yml run --rm --service-ports app manage.py $(MANAGE_ARGS)
+	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/base.yml -f docker/release.yml run --rm --service-ports app manage.py $(MANAGE_ARGS)
 
 logs:
 	${INFO} "Showing logs..."
-	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/common.yml -f docker/test.yml logs $(LOGS_ARGS)
+	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/base.yml -f docker/dev.yml logs $(LOGS_ARGS)
 	
 clean:
 	${INFO} "Cleaning test environment..."
-	@ docker-compose -p $(TEST_ENV_NAME) -f docker/common.yml -f docker/test.yml kill
-	@ docker-compose -p $(TEST_ENV_NAME) -f docker/common.yml -f docker/test.yml rm -f -v
+	@ docker-compose -p $(TEST_ENV_NAME) -f docker/base.yml -f docker/dev.yml kill
+	@ docker-compose -p $(TEST_ENV_NAME) -f docker/base.yml -f docker/dev.yml rm -f -v
 	${INFO} "Cleaning release environment..."
-	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/common.yml -f docker/release.yml kill
-	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/common.yml -f docker/release.yml rm -f -v
+	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/base.yml -f docker/release.yml kill
+	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/base.yml -f docker/release.yml rm -f -v
 	${INFO} "Cleaning dangling images..."
 	@ docker images -q --filter "dangling=true" | xargs docker rmi
 	${INFO} "Cleaning target folder..."
@@ -81,9 +81,9 @@ clean:
 
 test: 
 	${INFO} "Ensuring database is ready..."
-	@ docker-compose -p $(TEST_ENV_NAME) -f docker/common.yml -f docker/test.yml run --rm agent
+	@ docker-compose -p $(TEST_ENV_NAME) -f docker/base.yml -f docker/dev.yml run --rm agent
 	${INFO} "Running tests..."
-	@ docker-compose -p $(TEST_ENV_NAME) -f docker/common.yml -f docker/test.yml run --rm app
+	@ docker-compose -p $(TEST_ENV_NAME) -f docker/base.yml -f docker/dev.yml run --rm app
 	${INFO} "Testing complete"
 
 all:
