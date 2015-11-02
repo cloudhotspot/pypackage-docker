@@ -40,6 +40,12 @@ ifeq (run,$(firstword $(MAKECMDGOALS)))
   $(eval $(RUN_ARGS):;@:)
 endif
 
+# Extract push arguments
+ifeq (push,$(firstword $(MAKECMDGOALS)))
+  PUSH_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(PUSH_ARGS):;@:)
+endif
+
 # Extract manage arguments
 ifeq (manage,$(firstword $(MAKECMDGOALS)))
   MANAGE_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))

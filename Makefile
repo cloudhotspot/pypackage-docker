@@ -4,7 +4,7 @@ REPO_VERSION ?= latest
 TEST_ENV_NAME ?= $(REPO_NS)$(APP_NAME)test
 RELEASE_ENV_NAME ?= $(REPO_NS)$(APP_NAME)release
 
-.PHONY: image build release run manage clean test agent all start stop bootstrap remove logs
+.PHONY: image build release run manage clean test agent all start stop bootstrap remove logs login logout push
 
 include make/functions
 
@@ -21,6 +21,21 @@ build:
 	${INFO} "Building Python wheels..."
 	@ docker-compose -p $(TEST_ENV_NAME) -f docker/base.yml -f docker/dev.yml run --rm builder
 	${INFO} "Build complete"
+
+login:
+	${INFO} "Logging in..."
+	@ docker login -u $(DOCKER_USER) -e $(DOCKER_EMAIL) -p $(DOCKER_PASS) $(DOCKER_SERVER)
+	${INFO} "Logged in as $(DOCKER_USER)"
+
+logout:
+	${INFO} "Logging out..."
+	@ docker logout
+	${INFO} "Logged out"
+
+push:
+	${INFO} "Pushing $(PUSH_ARGS)..."
+	@ docker push $(PUSH_ARGS)
+	${INFO} "Pushed $(PUSH_ARGS)"
 
 release:
 	@ make image docker/release
