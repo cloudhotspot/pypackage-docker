@@ -46,8 +46,8 @@ The rest of this document provides an example to enable you to get started, and 
 ## Prerequisites
 
 - Linux/OS X computer
-- Docker client - the workflow has been tested on Docker 1.8
-- Docker Compose - the workflow has been tested on docker-compose 1.4.2
+- Docker client - version 1.8 or higher
+- Docker Compose - version 1.5 or higher
 - Docker daemon (either running locally, on local VM or on a remote host)
 - Docker daemon must have Internet connectivity
 - Docker Machine (Recommended) - if testing on locally OS X, Docker Machine along with your favourite virualisation software is recommended
@@ -524,7 +524,7 @@ Copying '/appenv/local/lib/python2.7/site-packages/django/contrib/admin/static/a
 - Add functional tests example
 - Add CI system example (e.g. using Jenkins or GoCD)
 - Add CD workflow 
-- Add support for Git branching (awaiting Docker Compose 1.5 variable substitution features)
+- Add support for Git branching
 
 ## Acknowledgements
 
