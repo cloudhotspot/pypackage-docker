@@ -16,4 +16,6 @@ node {
 
     stage 'Build Runtime Artefacts'
     sh 'make release'
+
+    step([$class: 'JUnitResultArchiver', testResults: '**/src/*.xml'])
 }
