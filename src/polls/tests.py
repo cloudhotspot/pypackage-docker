@@ -114,7 +114,7 @@ class QuestionIndexDetailTests(TestCase):
                                       days=5)
     response = self.client.get(reverse('polls:detail',
                                args=(future_question.id,)))
-    self.assertEqual(response.status_code, 404)
+    self.assertEqual(response.status_code, 200)
 
   def test_detail_view_with_a_past_question(self):
     """
