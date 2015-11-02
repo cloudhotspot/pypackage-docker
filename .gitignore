@@ -8,3 +8,4 @@ docs/_*
 src/.coverage
 src/coverage.xml
 src/xunittest.xml
+src/reports

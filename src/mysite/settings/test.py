@@ -10,9 +10,10 @@ NOSE_ARGS = [
   '--verbosity=2',   # verbose output 
   '--with-xunit',    # enable XUnit plugin
   '--xunit-file=xunittest.xml',  # the XUnit report file
-  '--cover-xml',     # produle XML coverage info
-  '--cover-xml-file=coverage.xml',  # the coverage info file
-  '--cover-package=polls'
+  '--cover-html',     # produle XML coverage info
+  '--cover-html-dir=reports',  # the coverage info file
+  '--cover-package=polls',
+  '--cover-erase'
 ]
 
 # Database
