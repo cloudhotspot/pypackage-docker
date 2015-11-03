@@ -13,7 +13,7 @@ app:
 cache:
   image: ${REPO_NS}/${APP_NAME}-dev:latest
   volumes:
-    - /tmp/mycompany_myapp_cache:/cache
+    - ../cache:/cache
   entrypoint: "true"
 
 agent:
