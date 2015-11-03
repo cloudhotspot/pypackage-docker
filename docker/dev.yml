@@ -1,5 +1,5 @@
 app:
-  image: "mycompany/myapp-dev:latest"
+  image: ${REPO_NS}/${APP_NAME}-dev:latest
   volumes_from:
     - cache
   volumes:
@@ -11,13 +11,13 @@ app:
     NOSE_INCLUDE_EXE: 1
 
 cache:
-  image: mycompany/myapp-dev:latest
+  image: ${REPO_NS}/${APP_NAME}-dev:latest
   volumes:
     - /tmp/mycompany_myapp_cache:/cache
   entrypoint: "true"
 
 agent:
-  image: mycompany/myapp-agent:latest
+  image: ${REPO_NS}/${APP_NAME}-agent:latest
   links:
     - db
   volumes:
@@ -25,7 +25,7 @@ agent:
   command: site.yml --extra-vars="probe_host=db probe_port=3306"
 
 builder:
-  image: mycompany/myapp-dev:latest
+  image: ${REPO_NS}/${APP_NAME}-dev:latest
   volumes:
     - ../src:/application
     - ../target:/wheelhouse
