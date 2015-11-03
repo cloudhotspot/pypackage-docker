@@ -12,3 +12,8 @@ test:
 
   override:
     - docker-compose -f docker/base.yml -f docker/dev.yml run app
+
+general:
+  artifacts:
+    - "src/xunittest.xml"
+    - "src/reports"
