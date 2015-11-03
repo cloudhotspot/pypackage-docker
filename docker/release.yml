@@ -8,13 +8,13 @@ app:
     DJANGO_SETTINGS_MODULE: mysite.settings.release
 
 static:
-  image: ${REPO_NS}/${APP_NAME}-release:latest
+  image: ${REPO_NS}/${APP_NAME}-${GIT_BRANCH}-release:latest
   volumes:
     - /var/www/mysite/
   entrypoint: "true"
 
 agent:
-  image: ${REPO_NS}/${APP_NAME}-agent:latest
+  image: ${REPO_NS}/${APP_NAME}-${GIT_BRANCH}-agent:latest
   links:
     - db
   volumes:

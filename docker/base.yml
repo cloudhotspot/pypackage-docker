@@ -1,5 +1,5 @@
 app:
-  image: ${REPO_NS}/${APP_NAME}-release:latest
+  image: ${REPO_NS}/${APP_NAME}-${GIT_BRANCH}-release:latest
   extra_hosts:
     bob: 8.8.8.8
   links:
