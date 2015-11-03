@@ -13,7 +13,10 @@ test:
   override:
     - docker-compose -f docker/base.yml -f docker/dev.yml run app
 
+  post:
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    - cp src/xunittest.xml $CIRCLE_TEST_REPORTS/junit/
+
 general:
   artifacts:
-    - "src/xunittest.xml"
     - "src/reports"
