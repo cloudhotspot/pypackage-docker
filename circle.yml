@@ -8,7 +8,7 @@ dependencies:
 
 test:
   pre:
-    - docker-compose -f docker/base.yml -f docker/dev.yml run --rm agent
+    - docker-compose -f docker/base.yml -f docker/dev.yml run agent
 
   override:
-    - docker-compose -f docker/base.yml -f docker/dev.yml run --rm app
+    - docker-compose -f docker/base.yml -f docker/dev.yml run app
