@@ -18,6 +18,7 @@ describe "Dockerfile" do
     expect(package("python")).to be_installed
   end
 
+
   def os_version
     command("lsb_release -a").stdout
   end
