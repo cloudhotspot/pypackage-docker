@@ -8,13 +8,13 @@ app:
     DJANGO_SETTINGS_MODULE: mysite.settings.release
 
 static:
-  image: cloudhotspot/django-sample-app-release:latest
+  image: cloudhotspot/sample-django-app-release:latest
   volumes:
     - /var/www/mysite/
   entrypoint: "true"
 
 agent:
-  image: cloudhotspot/django-sample-app-agent:latest
+  image: cloudhotspot/sample-django-app-agent:latest
   links:
     - db
   volumes:

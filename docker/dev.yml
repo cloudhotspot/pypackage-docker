@@ -1,5 +1,5 @@
 app:
-  image: cloudhotspot/django-sample-app-dev:latest
+  image: cloudhotspot/sample-django-app-dev:latest
   volumes_from:
     - cache
   volumes:
@@ -11,13 +11,13 @@ app:
     NOSE_INCLUDE_EXE: 1
 
 cache:
-  image: cloudhotspot/django-sample-app-base:latest
+  image: cloudhotspot/sample-django-app-dev:latest
   volumes:
     - /tmp/mycompany_myapp_cache:/cache
   entrypoint: "true"
 
 agent:
-  image: cloudhotspot/django-sample-app-agent:latest
+  image: cloudhotspot/sample-django-app-agent:latest
   links:
     - db
   volumes:
@@ -25,7 +25,7 @@ agent:
   command: site.yml --extra-vars="probe_host=db probe_port=3306"
 
 builder:
-  image: cloudhotspot/django-sample-app-base:latest
+  image: cloudhotspot/sample-django-app-dev:latest
   volumes:
     - ../src:/application
     - ../target:/wheelhouse
