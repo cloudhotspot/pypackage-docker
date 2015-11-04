@@ -1,4 +1,4 @@
-FROM mycompany/myapp-base:latest
+FROM cloudhotspot/django-sample-app-base:latest
 MAINTAINER Justin Menga <justin.menga@cloudhotspot.co>
 
 # Environment variables available to container
