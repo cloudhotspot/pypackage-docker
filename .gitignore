@@ -4,6 +4,7 @@ env_make
 target
 *.whl
 *.pyc
+*.lock
 docs/_*
 src/.coverage
 src/coverage.xml
