@@ -1,12 +1,14 @@
 REPO_NS ?= mycompany
 APP_NAME ?= myapp
 REPO_VERSION ?= latest
-TEST_ENV_NAME ?= $(REPO_NS)$(APP_NAME)test
-RELEASE_ENV_NAME ?= $(REPO_NS)$(APP_NAME)release
 
 .PHONY: image build release run manage clean test agent all start stop bootstrap remove logs login logout push
 
 include make/functions
+
+DEV_ENV_NAME ?= $(REPO_NS)$(APP_NAME)$(GIT_BRANCH)dev
+RELEASE_ENV_NAME ?= $(REPO_NS)$(APP_NAME)$(GIT_BRANCH)release
+FQ_APP_NAME = $(REPO_NS)/$(APP_NAME)-$(GIT_BRANCH)-$(IMAGE_CONTEXT)
 
 image:
 	${INFO} "Building Docker image $(FQ_APP_NAME):$(GIT_TAG)..."
@@ -19,7 +21,7 @@ image:
 
 build:
 	${INFO} "Building Python wheels..."
-	@ docker-compose -p $(TEST_ENV_NAME) -f docker/base.yml -f docker/dev.yml run --rm builder
+	@ docker-compose -p $(DEV_ENV_NAME) -f docker/base.yml -f docker/dev.yml run --rm builder
 	${INFO} "Build complete"
 
 login:
@@ -83,8 +85,8 @@ logs:
 	
 clean:
 	${INFO} "Cleaning test environment..."
-	@ docker-compose -p $(TEST_ENV_NAME) -f docker/base.yml -f docker/dev.yml kill
-	@ docker-compose -p $(TEST_ENV_NAME) -f docker/base.yml -f docker/dev.yml rm -f -v
+	@ docker-compose -p $(DEV_ENV_NAME) -f docker/base.yml -f docker/dev.yml kill
+	@ docker-compose -p $(DEV_ENV_NAME) -f docker/base.yml -f docker/dev.yml rm -f -v
 	${INFO} "Cleaning release environment..."
 	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/base.yml -f docker/release.yml kill
 	@ docker-compose -p $(RELEASE_ENV_NAME) -f docker/base.yml -f docker/release.yml rm -f -v
@@ -96,9 +98,9 @@ clean:
 
 test: 
 	${INFO} "Ensuring database is ready..."
-	@ docker-compose -p $(TEST_ENV_NAME) -f docker/base.yml -f docker/dev.yml run --rm agent
+	@ docker-compose -p $(DEV_ENV_NAME) -f docker/base.yml -f docker/dev.yml run --rm agent
 	${INFO} "Running tests..."
-	@ docker-compose -p $(TEST_ENV_NAME) -f docker/base.yml -f docker/dev.yml run --rm app
+	@ docker-compose -p $(DEV_ENV_NAME) -f docker/base.yml -f docker/dev.yml run --rm app
 	${INFO} "Testing complete"
 
 all:

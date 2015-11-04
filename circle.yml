@@ -5,6 +5,8 @@ machine:
 dependencies:
   override:
     - sudo pip install --upgrade docker-compose==1.5.0rc2
+  cache_directories:
+    - "cache"    
 
 test:
   pre:
@@ -12,3 +14,11 @@ test:
 
   override:
     - docker-compose -f docker/base.yml -f docker/dev.yml run app
+
+  post:
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    - cp src/xunittest.xml $CIRCLE_TEST_REPORTS/junit/
+
+general:
+  artifacts:
+    - "src/reports"

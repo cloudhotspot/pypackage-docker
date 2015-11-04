@@ -1,11 +1,12 @@
 # Helpers
-GIT_BRANCH = git rev-parse --abbrev-ref HEAD
+GIT_BRANCH_CMD = git rev-parse --abbrev-ref HEAD
 GIT_SHORT_SHA = git rev-parse --short HEAD
 COMMIT_COUNT = git rev-list HEAD --count
-# GIT_CONTEXT := $$($(GIT_BRANCH))
+GIT_BRANCH := $$($(GIT_BRANCH_CMD))
+GIT_BRANCH := $(subst /,-,$(GIT_BRANCH))
 GIT_TAG := $$($(GIT_SHORT_SHA))
 
-# Cosmetices
+# Cosmetics
 YELLOW = "\033[1;33m"
 NC = "\033[0m"
 
@@ -96,6 +97,3 @@ ifeq (build,$(firstword $(MAKECMDGOALS)))
   $(eval $(BUILD_CONTEXT):;@:)
   $(eval $(BUILD_CMD):;@:)
 endif
-
-# Expansion variables
-FQ_APP_NAME = $(REPO_NS)/$(APP_NAME)-$(IMAGE_CONTEXT)
