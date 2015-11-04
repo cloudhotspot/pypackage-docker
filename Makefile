@@ -1,5 +1,5 @@
-REPO_NS ?= mycompany
-APP_NAME ?= myapp
+REPO_NS ?= cloudhotspot
+APP_NAME ?= sample-django-app
 REPO_VERSION ?= latest
 
 .PHONY: image build release run manage clean test agent all start stop bootstrap remove logs login logout push

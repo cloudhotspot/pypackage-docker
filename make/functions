@@ -3,7 +3,6 @@ GIT_BRANCH_CMD = git rev-parse --abbrev-ref HEAD
 GIT_SHORT_SHA = git rev-parse --short HEAD
 COMMIT_COUNT = git rev-list HEAD --count
 GIT_BRANCH := $$($(GIT_BRANCH_CMD))
-GIT_BRANCH := $(subst /,-,$(GIT_BRANCH))
 GIT_TAG := $$($(GIT_SHORT_SHA))
 
 # Cosmetics
