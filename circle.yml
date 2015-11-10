@@ -5,15 +5,16 @@ machine:
 dependencies:
   override:
     - sudo pip install --upgrade docker-compose==1.5.0
-  cache_directories:
-    - "cache"    
 
 test:
   pre:
-    - docker-compose -f docker/base.yml -f docker/dev.yml run agent
+    - make image docker/base
+    - make image docker/dev
+    - make image docker/agent
+    # - docker-compose -f docker/base.yml -f docker/dev.yml run agent
 
   override:
-    - docker-compose -f docker/base.yml -f docker/dev.yml run app
+    - make test
 
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
