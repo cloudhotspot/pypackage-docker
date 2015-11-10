@@ -8,7 +8,7 @@ include make/functions
 
 DEV_ENV_NAME ?= $(REPO_NS)$(APP_NAME)$(GIT_BRANCH)dev
 RELEASE_ENV_NAME ?= $(REPO_NS)$(APP_NAME)$(GIT_BRANCH)release
-FQ_APP_NAME = $(REPO_NS)/$(APP_NAME)-$(GIT_BRANCH)-$(IMAGE_CONTEXT)
+FQ_APP_NAME = $(REPO_NS)/$(APP_NAME)-$(IMAGE_CONTEXT)
 
 image:
 	${INFO} "Building Docker image $(FQ_APP_NAME):$(GIT_TAG)..."

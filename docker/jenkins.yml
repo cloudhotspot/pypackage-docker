@@ -1,7 +1,0 @@
-app:
-  volumes_from:
-    - jenkins
-
-agent:
-  volumes_from:
-    - jenkins

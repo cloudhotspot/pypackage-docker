@@ -1,5 +1,5 @@
 app:
-  image: cloudhotspot/django-sample-app-release:latest
+  image: cloudhotspot/sample-django-app-release:latest
   links:
     - db
   environment:
